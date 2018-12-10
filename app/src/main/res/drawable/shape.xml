@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- Colored rectangle-->
+    <item>
+        <shape android:shape="rectangle">
+            <corners
+                android:bottomRightRadius="250dp"
+                android:topRightRadius="250dp" />
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+
+
+    <!-- This rectangle for the left side -->
+    <!-- Its color should be the same as layout's -->
+
+
+</layer-list>

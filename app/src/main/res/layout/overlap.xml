@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:id="@+id/frame"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    android:padding="0.1dp">
+    <View
+        android:id="@+id/white_space"
+        android:layout_marginStart="4dp"
+        android:layout_width="60dp"
+        android:elevation="1dp"
+        android:background="@drawable/circle"
+        android:layout_height="62dp"/>
+    <TextView
+        android:id="@+id/buttonText"
+        android:layout_width="60dp"
+        android:textSize="60sp"
+        android:gravity="center"
+        android:elevation="4dp"
+        android:textColor="@android:color/white"
+        android:fontFamily="@font/bankicon"
+        android:layout_height="60dp"
+        android:layout_gravity="left|center"
+        android:background="@drawable/circle_black"
+        android:clickable="false"
+        />
+
+
+    <TextView
+        android:background="@drawable/rectangle"
+        android:layout_marginStart="20dp"
+        android:id="@+id/menu_item_text"
+        android:layout_marginEnd="10dp"
+        android:textColor="@android:color/black"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+/>
+
+</FrameLayout>
