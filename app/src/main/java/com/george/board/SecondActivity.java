@@ -146,11 +146,14 @@ public class SecondActivity extends AppCompatActivity {
                         if (response.isSuccessful()) {
                             ConfigFormsList forms = new ConfigFormsList();
                             ArrayList<ConfigForms> FORM = new ArrayList<>();
-                            forms = response.body();
-                            FORM = forms.getForms();
-                            for (int i = 0; i < FORM.size(); i++) {
-                                generateField2(FORM.get(i).getName(), FORM.get(i).getType(), FORM.get(i).getListItem(), FORM.get(i), i, FORM.size());
+                            if (response.body()!=null){
+                                forms = response.body();
+                                FORM = forms.getForms();
+                                for (int i = 0; i < FORM.size(); i++) {
+                                    generateField2(FORM.get(i).getName(), FORM.get(i).getType(), FORM.get(i).getListItem(), FORM.get(i), i, FORM.size());
+                                }
                             }
+
                         }
                     }
 

@@ -8,6 +8,15 @@ public class MyAccountActivityDetails implements  Parcelable {
      String Icon;
      String Name;
      String Status;
+     String date;
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
 
     public int getId() {
         return Id;
@@ -46,6 +55,7 @@ public class MyAccountActivityDetails implements  Parcelable {
         Icon = in.readString();
         Name = in.readString();
         Status = in.readString();
+        date = in.readString();
     }
 
     public static final Creator<MyAccountActivityDetails> CREATOR = new Creator<MyAccountActivityDetails>() {
@@ -71,6 +81,7 @@ public class MyAccountActivityDetails implements  Parcelable {
         dest.writeString(Icon);
         dest.writeString(Name);
         dest.writeString(Status);
+        dest.writeString(date);
     }
     public MyAccountActivityDetails(){
         super();

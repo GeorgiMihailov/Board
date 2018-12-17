@@ -100,11 +100,16 @@ public class MyActivity_activity extends AppCompatActivity {
                 ArrayList<MyAccountActivity> main = new ArrayList<>();
                 for (int i = 0; i < accountActivity.size();i++){
                     ArrayList<MyAccountActivityDetails> detailsArrayList = new ArrayList<>();
-                    MyAccountActivityDetails details = new MyAccountActivityDetails();
-                    details.setStatus(accountActivity.get(i).getCards().get(i).getStatus());
-                    details.setName(accountActivity.get(i).getCards().get(i).getName());
-                    details.setIcon(accountActivity.get(i).getCards().get(i).getIcon());
-                    detailsArrayList.add(details);
+
+
+
+                    for(int e =0; e < accountActivity.get(i).getCards().size();e++){
+                        MyAccountActivityDetails details = new MyAccountActivityDetails();
+                        details.setStatus(accountActivity.get(i).getCards().get(e).getStatus());
+                        details.setName(accountActivity.get(i).getCards().get(e).getName());
+                        details.setIcon(accountActivity.get(i).getCards().get(e).getIcon());
+                        detailsArrayList.add(details);
+                    }
                     MyAccountActivity myAct = new MyAccountActivity(accountActivity.get(i).getName(), detailsArrayList);
                     myAct.setIcon(accountActivity.get(i).getIcon());
                     myAct.setCards(detailsArrayList);

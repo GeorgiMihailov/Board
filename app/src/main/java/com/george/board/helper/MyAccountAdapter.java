@@ -12,7 +12,6 @@ import com.thoughtbot.expandablerecyclerview.ExpandableRecyclerViewAdapter;
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MyAccountAdapter extends ExpandableRecyclerViewAdapter<MyAccountActivityViewHolder, MyAccountActivityDetailsViewHolder > {
     private LayoutInflater inflater;
@@ -26,21 +25,21 @@ public class MyAccountAdapter extends ExpandableRecyclerViewAdapter<MyAccountAct
 
     @Override
     public MyAccountActivityViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
-        View view = inflater.inflate(R.layout.list_item_genre, parent, false);
+        View view = inflater.inflate(R.layout.main_myactivity_window, parent, false);
         return new MyAccountActivityViewHolder(view);
     }
 
     @Override
     public MyAccountActivityDetailsViewHolder onCreateChildViewHolder(ViewGroup parent, int viewType) {
-        View view = inflater.inflate(R.layout.list_item_artist, parent, false);
+        View view = inflater.inflate(R.layout.secondary_myactivity_window, parent, false);
         return new MyAccountActivityDetailsViewHolder(view);
     }
 
     @Override
     public void onBindChildViewHolder(MyAccountActivityDetailsViewHolder holder, int flatPosition, ExpandableGroup group,
                                       int childIndex) {
-        final MyAccountActivityDetails artist = ((MyAccountActivity) group).getItems().get(childIndex);
-        holder.setArtistName(artist.getName());
+        final ArrayList<MyAccountActivityDetails> artist = (ArrayList<MyAccountActivityDetails>) group.getItems();
+        holder.onBind(artist, childIndex);
     }
 
     @Override
