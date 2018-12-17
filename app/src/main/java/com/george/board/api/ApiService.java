@@ -2,6 +2,7 @@ package com.george.board.api;
 
 import com.george.board.model.ConfigFormsList;
 import com.george.board.model.CreditStatus;
+import com.george.board.model.MyAccountActivity;
 import com.george.board.model.SendForm;
 import com.george.board.model.Menues;
 
@@ -27,11 +28,14 @@ public interface ApiService {
     Call<ConfigFormsList> getFields(@Path("boardId") int boardId, @Path("cardTypeId") int cardTypeId);
 
 //    @FormUrlEncoded
-    @POST("card/createcard")
-        Call<SendForm>  sendForms(@Body SendForm sendForm);
+    @POST("card/createcard/{userId}")
+        Call<ResponseBody>  sendForms(@Path("userId") String userId,@Body SendForm sendForm);
 
     @GET("card/getstatus")
     Call<CreditStatus> getStatus();
+
+    @GET("card/getactivecards/{CompanyId}/{UserId}")
+    Call<ArrayList<MyAccountActivity>> getMyActivity(@Path("CompanyId") int CompanyId, @Path("UserId") int UserId);
 
     //TEST THIS SHIT
     @Multipart

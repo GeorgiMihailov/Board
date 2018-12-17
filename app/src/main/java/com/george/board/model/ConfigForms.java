@@ -4,11 +4,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class ConfigForms implements Serializable {
-    public int  Id;
-    public String Name;
-    public int Type;
-    public String defaultValue;
-    public ArrayList<DropdownItem> ListItems;
+    private int  Id;
+    private String Name;
+    private int Type;
+    private String defaultValue;
+    private ArrayList<DropdownItem> ListItems;
 
 
     public int getId() {

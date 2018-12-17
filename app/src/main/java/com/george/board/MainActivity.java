@@ -1,50 +1,78 @@
 package com.george.board;
 
-import android.app.LauncherActivity;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import android.support.annotation.MainThread;
+import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.widget.ViewDragHelper;
-import android.util.DisplayMetrics;
-import android.view.SubMenu;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ExpandableListView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.george.board.api.RestApi;
+import com.george.board.appAuth.AuthStateManager;
+import com.george.board.appAuth.Configuration;
 import com.george.board.helper.ExpandableListAdapter;
 import com.george.board.helper.OnExpandableListElementClick;
+import com.george.board.helper.PreferencesManager;
 import com.george.board.model.BoardCard;
 import com.george.board.model.BoardCardList;
-import com.george.board.model.ConfigForms;
-import com.george.board.model.ConfigFormsList;
 import com.george.board.model.ExpandedMenuModel;
 import com.george.board.model.Menues;
 
+import net.openid.appauth.AppAuthConfiguration;
+import net.openid.appauth.AuthState;
+import net.openid.appauth.AuthorizationException;
+import net.openid.appauth.AuthorizationResponse;
+import net.openid.appauth.AuthorizationService;
+import net.openid.appauth.AuthorizationServiceDiscovery;
+import net.openid.appauth.ClientAuthentication;
+import net.openid.appauth.TokenRequest;
+import net.openid.appauth.TokenResponse;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import okio.Okio;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -79,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
     int angle = 0;
     int radius = 130;
     ConstraintSet c;
+    private long expiry;
 
 
     private TextView creditText;
@@ -91,10 +120,31 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
     private ConstraintSet constraintSet;
     private String g;
 
+    //APP AUTH INIT
+
+    private static final String TAG = "MainActivity";
+    private static String ACCESS_TOKEN = "";
+    public int userId;
+    private static final String KEY_USER_INFO = "userInfo";
+    private AuthorizationService mAuthService;
+    private AuthStateManager mStateManager;
+    private final AtomicReference<JSONObject> mUserInfoJson = new AtomicReference<>();
+    private ExecutorService mExecutor;
+    private Configuration mConfiguration;
+    public Configuration config;
+    private String name;
+    private String profilePicture;
+    public int companyId;
+    private String lastName;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Window window = getWindow();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
         setContentView(R.layout.activity_main);
 
 //
@@ -107,6 +157,12 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         expandableList.setGroupIndicator(null);
+        centerImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this,MyActivity_activity.class));
+            }
+        });
 
         constraintSet = new ConstraintSet();
 
@@ -115,6 +171,64 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         tf = ResourcesCompat.getFont(this, R.font.raleway_regular);
         params = new RelativeLayout.LayoutParams(
                 210, 210);
+
+        if (PreferencesManager.getTokenExpiry(this) != 0) {
+            expiry = PreferencesManager.getTokenExpiry(this);
+        }
+        long currentTime = Calendar.getInstance().getTimeInMillis();
+        if (expiry <= currentTime && expiry != 0) {
+            Configuration config = Configuration.getInstance(this);
+            mStateManager = AuthStateManager.getInstance(this);
+            mExecutor = Executors.newSingleThreadExecutor();
+            mConfiguration = Configuration.getInstance(this);
+            if (mAuthService == null) {
+                mAuthService = new AuthorizationService(this, new AppAuthConfiguration.Builder()
+                        .setConnectionBuilder(config.getConnectionBuilder())
+                        .build());
+            }
+            mStateManager.getCurrent().performActionWithFreshTokens(mAuthService, (accessToken, idToken, ex) -> {
+                if (ex != null) {
+                    return;
+                }
+                ACCESS_TOKEN = accessToken; PreferencesManager.addAccessToken(ACCESS_TOKEN,this);
+                if (mStateManager.getCurrent().getAccessTokenExpirationTime() != null) {
+                    expiry = mStateManager.getCurrent().getAccessTokenExpirationTime();
+                    PreferencesManager.addTokenExpiry(MainActivity.this, expiry);
+                }
+            });
+        }
+
+
+
+        config = Configuration.getInstance(this);
+        mStateManager = AuthStateManager.getInstance(this);
+        mExecutor = Executors.newSingleThreadExecutor();
+        mConfiguration = Configuration.getInstance(this);
+        if (mAuthService == null) {
+            mAuthService = new AuthorizationService(this, new AppAuthConfiguration.Builder()
+                    .setConnectionBuilder(config.getConnectionBuilder())
+                    .build());
+        }
+        mStateManager.getCurrent().performActionWithFreshTokens(mAuthService, (accessToken, idToken, ex) -> {
+                    if (ex != null) {
+                        return;
+                    }
+                });
+
+        if (config.hasConfigurationChanged()) {
+            Toast.makeText(
+                    this,
+                    "Configuration change detected",
+                    Toast.LENGTH_SHORT)
+                    .show();
+            signOut();
+
+        }
+        mAuthService = new AuthorizationService(
+                this,
+                new AppAuthConfiguration.Builder()
+                        .setConnectionBuilder(config.getConnectionBuilder())
+                        .build());
 
 
         prepareListData();
@@ -135,7 +249,10 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         expandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-
+                android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
+                ExpandedMenuModel item = (ExpandedMenuModel) eListAdapter.getGroup(i);
+                String url = item.getUrl();
+//                startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url));
                 //Log.d("DEBUG", "heading clicked");
                 return false;
             }
@@ -283,17 +400,22 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                                     iconHolder.setTextSize(60);
                                     ta = ResourcesCompat.getFont(MainActivity.this, R.font.bankicon);
                                     iconHolder.setTypeface(ta);
-                                    String v = (menues.get(i).getIcon());
-                                    g = new String(Character.toChars(Integer.parseInt(
-                                            v, 16)));
+                                    if(!menues.get(i).getIcon().isEmpty()){
+                                        String v = (menues.get(i).getIcon());
+                                        g = new String(Character.toChars(Integer.parseInt(
+                                                v, 16)));
+                                    }
                                 } else {
                                     iconHolder.setPadding((int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), 0);
                                     iconHolder.setTextSize(32);
                                     ta = ResourcesCompat.getFont(MainActivity.this, R.font.fontawesome_webfont);
                                     iconHolder.setTypeface(ta);
-                                    String v = (menues.get(i).getIcon());
-                                    g = new String(Character.toChars(Integer.parseInt(
-                                            v, 16)));
+                                    if(!menues.get(i).getIcon().isEmpty()){
+                                        String v = (menues.get(i).getIcon());
+                                        g = new String(Character.toChars(Integer.parseInt(
+                                                v, 16)));
+                                    }
+
                                 }
 
 
@@ -343,6 +465,7 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                                 if (menu.getSubmenu().size() > 0) {
                                     ExpandedMenuModel item1 = new ExpandedMenuModel();
                                     item1.setIconImgText(menu.getIcon());
+                                    item1.setUrl(menu.getUrl());
                                     item1.setIconName(menu.getLabel());
                                     listDataHeader.add(item1);
                                     List<ExpandedMenuModel> expandedMenuModels1 = new ArrayList<>();
@@ -362,6 +485,7 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                                     ExpandedMenuModel item1 = new ExpandedMenuModel();
                                     item1.setIconImgText(menu.getIcon());
                                     item1.setIconName(menu.getLabel());
+                                    item1.setUrl(menu.getUrl());
                                     listDataHeader.add(item1);
                                     listDataChild.put(listDataHeader.get(i), new ArrayList<>());
 
@@ -413,6 +537,256 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         Toast.makeText(MainActivity.this, "YEAAAH", Toast.LENGTH_LONG).show();
 
     }
+
+    //APP AUTH IMPLEMENTATION
+
+    @MainThread
+    private void signOut() {
+        // discard the authorization and token state, but retain the configuration and
+        // dynamic client registration (if applicable), to save from retrieving them again.
+        AuthState currentState = mStateManager.getCurrent();
+        AuthState clearedState =
+                new AuthState(currentState.getAuthorizationServiceConfiguration());
+        if (currentState.getLastRegistrationResponse() != null) {
+            clearedState.update(currentState.getLastRegistrationResponse());
+        }
+        mStateManager.replace(clearedState);
+        userId = 0;
+        PreferencesManager.setUserId(this, userId);
+
+
+        this.finishAffinity();
+    }
+
+
+    @MainThread
+    private void exchangeAuthorizationCode(AuthorizationResponse authorizationResponse) {
+
+        performTokenRequest(
+                authorizationResponse.createTokenExchangeRequest(),
+                this::handleCodeExchangeResponse);
+    }
+
+    @MainThread
+    private void performTokenRequest(
+            TokenRequest request,
+            AuthorizationService.TokenResponseCallback callback) {
+        ClientAuthentication clientAuthentication;
+        try {
+            clientAuthentication = mStateManager.getCurrent().getClientAuthentication();
+        } catch (ClientAuthentication.UnsupportedAuthenticationMethod ex) {
+            Log.d(TAG, "Token request cannot be made, client authentication for the token "
+                    + "endpoint could not be constructed (%s)", ex);
+//            displayNotAuthorized("Client authentication method is unsupported");
+            return;
+        }
+
+
+        mAuthService.performTokenRequest(
+                request,
+                clientAuthentication,
+                callback);
+    }
+
+    @WorkerThread
+    private void handleAccessTokenResponse(
+            @Nullable TokenResponse tokenResponse,
+            @Nullable AuthorizationException authException) {
+        mStateManager.updateAfterTokenResponse(tokenResponse, authException);
+
+    }
+
+    @SuppressLint("WrongThread")
+    @WorkerThread
+    private void handleCodeExchangeResponse(
+            @Nullable TokenResponse tokenResponse,
+            @Nullable AuthorizationException authException) {
+
+        mStateManager.updateAfterTokenResponse(tokenResponse, authException);
+        long expiresAt = 0;
+        if (tokenResponse.accessTokenExpirationTime != null) {
+            expiresAt = tokenResponse.accessTokenExpirationTime;
+        }
+        PreferencesManager.addTokenExpiry(MainActivity.this, expiresAt);
+
+        if (!mStateManager.getCurrent().isAuthorized()) {
+            final String message = "Authorization Code exchange failed"
+                    + ((authException != null) ? authException.error : "");
+
+            // WrongThread inference is incorrect for lambdas
+            //noinspection WrongThread
+//            runOnUiThread(() -> displayNotAuthorized(message));
+        } else {
+            AuthState state = mStateManager.getCurrent();
+            AuthorizationServiceDiscovery discoveryDoc =
+                    state.getAuthorizationServiceConfiguration().discoveryDoc;
+
+            fetchUserInfo();
+
+
+        }
+    }
+
+    @MainThread
+    public void fetchUserInfo() {
+        mStateManager.getCurrent().performActionWithFreshTokens(mAuthService, this::fetchUserInfo);
+    }
+
+    @MainThread
+    public void fetchUserInfo(String accessToken, String idToken, AuthorizationException ex) {
+        if (ex != null) {
+            Log.e(TAG, "Token refresh failed when fetching user info");
+            mUserInfoJson.set(null);
+
+
+        }
+
+
+        AuthorizationServiceDiscovery discovery =
+                mStateManager.getCurrent()
+                        .getAuthorizationServiceConfiguration()
+                        .discoveryDoc;
+
+        URL userInfoEndpoint = null;
+        try {
+            userInfoEndpoint =
+                    mConfiguration.getUserInfoEndpointUri() != null
+                            ? new URL(mConfiguration.getUserInfoEndpointUri().toString())
+                            : new URL(discovery.getUserinfoEndpoint().toString());
+        } catch (MalformedURLException urlEx) {
+            Log.e(TAG, "Failed to construct user info endpoint URL", urlEx);
+
+
+        }
+
+        URL finalUserInfoEndpoint = userInfoEndpoint;
+        mExecutor.submit(() -> {
+            try {
+                HttpURLConnection conn =
+                        (HttpURLConnection) finalUserInfoEndpoint.openConnection();
+                conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+                conn.setInstanceFollowRedirects(false);
+                String response = Okio.buffer(Okio.source(conn.getInputStream()))
+                        .readString(Charset.forName("UTF-8"));
+                mUserInfoJson.set(new JSONObject(response));
+                ACCESS_TOKEN = accessToken;
+                companyId = mUserInfoJson.get().getInt("CompanyId");
+                PreferencesManager.setCompanyId(companyId,MainActivity.this);
+                userId = mUserInfoJson.get().getInt("id");
+                PreferencesManager.setUserId(MainActivity.this, userId);
+                profilePicture = mUserInfoJson.get().getString("picture");
+                PreferencesManager.setUserPicture(profilePicture, MainActivity.this);
+                name = mUserInfoJson.get().getString("given_name");
+                PreferencesManager.setUserName(name,MainActivity.this);
+                lastName = mUserInfoJson.get().getString("family_name");
+                PreferencesManager.setUserLastname(lastName,MainActivity.this);
+                PreferencesManager.addAccessToken(ACCESS_TOKEN, MainActivity.this);
+
+
+
+            } catch (IOException ioEx) {
+                Log.e(TAG, "Network error when querying userinfo endpoint", ioEx);
+                showSnackbar("Fetching user info failed");
+
+            } catch (JSONException jsonEx) {
+                Log.e(TAG, "Failed to parse userinfo response");
+                showSnackbar("Failed to parse user info");
+            }
+
+
+        });
+    }
+
+    @MainThread
+    private void showSnackbar(String message) {
+        Snackbar.make(findViewById(R.id.drawer_layout),
+                message,
+                Snackbar.LENGTH_LONG)
+                .show();
+    }
+
+
+
+//    @MainThread
+//    public void refreshAccessToken() {
+//
+//        performTokenRequest(
+//                mStateManager.getCurrent().createTokenRefreshRequest(),
+//                this::handleAccessTokenResponse);
+//    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mExecutor.isShutdown()) {
+            mExecutor = Executors.newSingleThreadExecutor();
+        }
+
+        if (mStateManager.getCurrent().isAuthorized()) {
+            fetchUserInfo();
+
+            return;
+        }
+
+        // the stored AuthState is incomplete, so check if we are currently receiving the result of
+        // the authorization flow from the browser.
+        AuthorizationResponse response = AuthorizationResponse.fromIntent(getIntent());
+        AuthorizationException ex = AuthorizationException.fromIntent(getIntent());
+
+        if (response != null || ex != null) {
+            mStateManager.updateAfterAuthorization(response, ex);
+        }
+
+        if (response != null && response.authorizationCode != null) {
+            // authorization code exchange is required
+            mStateManager.updateAfterAuthorization(response, ex);
+            exchangeAuthorizationCode(response);
+
+
+        } else if (ex != null) {
+//            displayNotAuthorized("Authorization flow failed: " + ex.getMessage());
+        } else {
+//            displayNotAuthorized("No authorization state retained - reauthorization required");
+        }
+
+
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        // user info is retained to survive activity restarts, such as when rotating the
+        // device or switching apps. This isn't essential, but it helps provide a less
+        // jarring UX when these events occur - data does not just disappear from the view.
+        if (mUserInfoJson.get() != null) {
+            state.putString(KEY_USER_INFO, mUserInfoJson.toString());
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mAuthService.dispose();
+        mExecutor.shutdownNow();
+    }
+
+    @Override
+    public void onResume() {
+        if (PreferencesManager.getTokenExpiry(MainActivity.this) != 0) {
+            expiry = PreferencesManager.getTokenExpiry(MainActivity.this);
+        }
+        super.onResume();
+
+    }
+
+    @Override
+    public void onPause() {
+
+        super.onPause();
+
+    }
+
 }
 
 

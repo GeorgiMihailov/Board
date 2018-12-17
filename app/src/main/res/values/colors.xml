@@ -3,4 +3,10 @@
     <color name="colorPrimary">#eb1a3a</color>
     <color name="colorPrimaryDark">#b00014</color>
     <color name="colorAccent">#000000</color>
+    <color name="material_deep_purple_500">#673AB7</color>
+    <color name="material_deep_purple_a200">#7C4DFF</color>
+    <color name="material_blue_500">#2196F3</color>
+    <color name="material_blue_700">#1976D2</color>
+    <color name="material_lime_a200">#EEFF41</color>
+    <color name="statusBarColor">#009274</color>
 </resources>

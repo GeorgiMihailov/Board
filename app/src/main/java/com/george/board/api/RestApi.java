@@ -8,6 +8,8 @@ import com.george.board.BuildConfig;
 import com.george.board.helper.CheckConnection;
 import com.george.board.helper.LoggingInterceptor;
 import com.george.board.model.ConfigFormsList;
+import com.george.board.model.CreditStatus;
+import com.george.board.model.MyAccountActivity;
 import com.george.board.model.SendForm;
 import com.george.board.model.Menues;
 
@@ -55,8 +57,14 @@ public class RestApi {
     public Call<ResponseBody> UploadFile(String policy_number, String field_id, MultipartBody.Part file) {
         return request().uploadFile(policy_number, field_id, file);
     }
-    public Call<SendForm> sendForms(SendForm sendForm){
-        return request().sendForms(sendForm);
+    public Call<ResponseBody> sendForms(String userId,SendForm sendForm){
+        return request().sendForms(userId,sendForm);
+    }
+    public Call<CreditStatus> getStatus (){
+        return request().getStatus();
+    }
+    public Call<ArrayList<MyAccountActivity>> getMyActivity (int CompanyId, int UserId){
+        return request().getMyActivity(CompanyId,UserId);
     }
     public void checkInternet(Runnable callback){
         if (CheckConnection.CheckInternetConnectivity(activity, true, callback )){

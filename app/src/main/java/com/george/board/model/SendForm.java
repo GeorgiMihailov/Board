@@ -6,6 +6,16 @@ import java.util.ArrayList;
 public class SendForm implements Serializable {
     public int boardId;
     public  int cardId;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String description;
     ArrayList<ConfigForms> forms;
 
     public int getBoardId() {

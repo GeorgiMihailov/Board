@@ -15,7 +15,9 @@
 
         <include
             android:id="@+id/root"
-            layout="@layout/activity_orbits"></include>
+            layout="@layout/activity_orbits">
+
+        </include>
 
         <include
             android:id="@+id/toolbarA"
@@ -24,10 +26,6 @@
 
     </FrameLayout>
 
-    <!--<include-->
-    <!--layout="@layout/app_bar_main"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent" />-->
 
     <android.support.design.widget.NavigationView
         android:id="@+id/nav_view"
@@ -46,5 +44,11 @@
 
 
     </android.support.design.widget.NavigationView>
+    <!--<FrameLayout-->
+        <!--android:id="@+id/placeHolder"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent">-->
+
+    <!--</FrameLayout>-->
 
 </android.support.v4.widget.DrawerLayout>

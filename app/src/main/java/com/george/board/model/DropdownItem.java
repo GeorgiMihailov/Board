@@ -3,6 +3,15 @@ package com.george.board.model;
 import java.io.Serializable;
 
 public class DropdownItem implements Serializable {
+    public String Name;
+    public int Id;
+
+
+    @Override
+    public String toString() {
+        return Name;
+    }
+
     public String getName() {
         return Name;
     }
@@ -19,6 +28,4 @@ public class DropdownItem implements Serializable {
         Id = id;
     }
 
-    public String Name;
-    public int Id;
 }

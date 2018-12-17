@@ -17,7 +17,7 @@
             android:id="@+id/childIconImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/bank_font"
+            android:fontFamily="@font/bankicon"
             android:paddingStart="10dp"
             android:textSize="40sp"
             tools:ignore="RtlSymmetry" />

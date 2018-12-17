@@ -108,11 +108,15 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         else if (!isExpanded)
             dropdownArrow.setVisibility(View.VISIBLE);
         lblListHeader.setTypeface(null, Typeface.BOLD);
-        String b = headerTitle.getIconImgText();
-        String c = new String(Character.toChars(Integer.parseInt(
-                b, 16)));
-        lblListHeader.setText(headerTitle.getIconName());
-        headerIcon.setText(c);
+        if (!headerTitle.getIconImgText().isEmpty()){
+            String b = headerTitle.getIconImgText();
+            String c = new String(Character.toChars(Integer.parseInt(
+                    b, 16)));
+            lblListHeader.setText(headerTitle.getIconName());
+            headerIcon.setText(c);
+        }
+
+
         return convertView;
     }
 
