@@ -88,9 +88,9 @@ public class MyActivity_activity extends AppCompatActivity {
         }
 
 
-        companyId = PreferencesManager.getCompanyId(MyActivity_activity.this);
-        userId = PreferencesManager.getUserId(MyActivity_activity.this);
 
+        userId = PreferencesManager.getUserId(MyActivity_activity.this);
+        companyId = PreferencesManager.getCompanyId(MyActivity_activity.this);
 
         Call<ArrayList<MyAccountActivity>> call = api.getMyActivity(companyId,userId);
         call.enqueue(new Callback<ArrayList<MyAccountActivity>>() {
@@ -108,11 +108,14 @@ public class MyActivity_activity extends AppCompatActivity {
                         details.setStatus(accountActivity.get(i).getCards().get(e).getStatus());
                         details.setName(accountActivity.get(i).getCards().get(e).getName());
                         details.setIcon(accountActivity.get(i).getCards().get(e).getIcon());
+                        details.setDate(accountActivity.get(i).getCards().get(e).getDate());
+                        details.setId(accountActivity.get(i).getCards().get(e).getId());
                         detailsArrayList.add(details);
                     }
                     MyAccountActivity myAct = new MyAccountActivity(accountActivity.get(i).getName(), detailsArrayList);
                     myAct.setIcon(accountActivity.get(i).getIcon());
                     myAct.setCards(detailsArrayList);
+                    myAct.setSize(accountActivity.get(i).getSize());
                     myAct.setName(accountActivity.get(i).getName());
 
                     main.add(myAct);

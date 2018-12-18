@@ -4,7 +4,12 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.MainThread;
 import android.support.annotation.Nullable;
@@ -43,6 +48,7 @@ import com.george.board.model.BoardCard;
 import com.george.board.model.BoardCardList;
 import com.george.board.model.ExpandedMenuModel;
 import com.george.board.model.Menues;
+import com.squareup.picasso.Picasso;
 
 import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthState;
@@ -136,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
     private String profilePicture;
     public int companyId;
     private String lastName;
+    private ConstraintLayout backgorund;
 
 
     @Override
@@ -147,9 +154,11 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
         setContentView(R.layout.activity_main);
 
+
 //
         api = new RestApi(this);
         boardCards = new ArrayList<>();
+        backgorund = findViewById(R.id.background);
         constraintLayout = findViewById(R.id.circle_view_holder);
         rootView = findViewById(R.id.root);
         centerImage = findViewById(R.id.sun_image);
@@ -681,6 +690,11 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                 lastName = mUserInfoJson.get().getString("family_name");
                 PreferencesManager.setUserLastname(lastName,MainActivity.this);
                 PreferencesManager.addAccessToken(ACCESS_TOKEN, MainActivity.this);
+                URL url = new URL(mUserInfoJson.get().getString("BackgroundPicture"));
+                Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                Drawable background = new BitmapDrawable(getResources(), bmp);
+                backgorund.setBackground(background);
+
 
 
 

@@ -105,6 +105,7 @@ public class LoginActivity extends AppCompatActivity {
 
             window.setStatusBarColor(ContextCompat.getColor(this,R.color.statusBarColor));
         }
+        setContentView(R.layout.activity_login);
 
 
 
@@ -121,7 +122,7 @@ public class LoginActivity extends AppCompatActivity {
             finish();
 
         }
-        setContentView(R.layout.activity_login);
+
         ButterKnife.bind(this);
         Picasso.with(this).load(R.mipmap.ic_launcher).centerInside().fit().into(logoImg);
         loginBtn.setOnClickListener((View view) -> startAuth());

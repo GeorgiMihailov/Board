@@ -15,6 +15,7 @@ public class MyAccountActivityViewHolder extends GroupViewHolder{
         private TextView genreTitle;
         private TextView iconHolder;
         private TextView numberOfElements;
+        private  int id;
 
 
         public MyAccountActivityViewHolder(View itemView) {
@@ -33,7 +34,8 @@ public class MyAccountActivityViewHolder extends GroupViewHolder{
                     v, 16)));
             genreTitle.setText(((MyAccountActivity) group).getName());
             iconHolder.setText(g);
-            numberOfElements.setText("1");
+            String size =String.valueOf(((MyAccountActivity) group).getSize()) ;
+            numberOfElements.setText(size);
 
         }
 }

@@ -31,8 +31,8 @@ public interface ApiService {
     @POST("card/createcard/{userId}")
         Call<ResponseBody>  sendForms(@Path("userId") String userId,@Body SendForm sendForm);
 
-    @GET("card/getstatus")
-    Call<CreditStatus> getStatus();
+    @GET("card/getstatus/{companyId}/{cardId}")
+    Call<CreditStatus> getStatus(@Path("companyId") int companyId, @Path("cardId") int cardId);
 
     @GET("card/getactivecards/{CompanyId}/{UserId}")
     Call<ArrayList<MyAccountActivity>> getMyActivity(@Path("CompanyId") int CompanyId, @Path("UserId") int UserId);

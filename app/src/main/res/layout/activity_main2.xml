@@ -29,7 +29,7 @@
             android:fontFamily="@font/raleway_regular"
             android:background="@drawable/apply_shape"/>
         <ScrollView
-            android:layout_marginTop="130dp"
+            android:layout_marginTop="150dp"
             android:layout_alignParentBottom="true"
             android:id="@+id/holder_layout"
             android:layout_width="match_parent"

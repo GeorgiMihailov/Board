@@ -1,5 +1,6 @@
 package com.george.board;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +14,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.george.board.api.RestApi;
+import com.george.board.helper.PreferencesManager;
 import com.george.board.model.CreditStatus;
 
 import java.util.ArrayList;
@@ -27,6 +29,8 @@ import static com.george.board.SecondActivity.convertDpToPixel;
 public class Main2Activity extends AppCompatActivity {
     RestApi api;
     CreditStatus creditStatus;
+    int companyId;
+    int cardId;
 
 
     private LinearLayout.LayoutParams formsParams;
@@ -46,13 +50,18 @@ public class Main2Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         api = new RestApi(this);
-        Call<CreditStatus> call = api.getStatus();
+
         Window window = getWindow();
 
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
         setContentView(R.layout.activity_main2);
+        companyId = PreferencesManager.getCompanyId(this);
+        Intent intent = getIntent();
+        if (intent.hasExtra("cardId")){
+            cardId = intent.getIntExtra("cardId", 0);
+        }else cardId = 0;
 
 
 
@@ -92,21 +101,27 @@ public class Main2Activity extends AppCompatActivity {
         textParams.gravity = Gravity.CENTER_VERTICAL;
 
 
-
+        Call<CreditStatus> call = api.getStatus(companyId,cardId);
         call.enqueue(new Callback<CreditStatus>() {
             @Override
             public void onResponse(Call<CreditStatus> call, Response<CreditStatus> response) {
                 if (response.isSuccessful()){
                   CreditStatus status = response.body();
+                  int postion = Integer.valueOf(status.getId());
                     ArrayList<String> statusNames = status.getNames();
                     for (int i = 0; i<statusNames.size();i++){
 
 
                         //FORM VIEWS
                         View view = new View(Main2Activity.this);
-                        if (statusNames.get(i).equals(status.getId())){
+                        if (postion == i){
                             view.setBackground(getDrawable(R.drawable.status_shape_in_progress));
-                        }else view.setBackground(getDrawable(R.drawable.status_shape_completed));
+                        }else if (postion < statusNames.indexOf(statusNames.get(i))){
+                            view.setBackground(getDrawable(R.drawable.status_shape_to_do));
+                        }else if (postion > statusNames.indexOf(statusNames.get(i)))
+                            view.setBackground(getDrawable(R.drawable.status_shape_completed));
+
+
                         view.setLayoutParams(viewParams);
                         circlesLayout.addView(view);
                         if (i < statusNames.size()-1){

@@ -60,8 +60,8 @@ public class RestApi {
     public Call<ResponseBody> sendForms(String userId,SendForm sendForm){
         return request().sendForms(userId,sendForm);
     }
-    public Call<CreditStatus> getStatus (){
-        return request().getStatus();
+    public Call<CreditStatus> getStatus (int companyId, int cardId){
+        return request().getStatus(companyId,cardId);
     }
     public Call<ArrayList<MyAccountActivity>> getMyActivity (int CompanyId, int UserId){
         return request().getMyActivity(CompanyId,UserId);

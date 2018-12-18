@@ -25,6 +25,7 @@ public class MyAccountActivityDetailsViewHolder extends ChildViewHolder {
     private TextView type;
     private TextView date;
     private TextView status;
+    private  int id;
 
     public MyAccountActivityDetailsViewHolder(View itemView) {
         super(itemView);
@@ -49,7 +50,7 @@ public class MyAccountActivityDetailsViewHolder extends ChildViewHolder {
         }
 
 
-
+//        id = ((MyAccountActivityDetails) artist.get(pos)).getId();
         type.setText(((MyAccountActivityDetails) artist.get(pos)).getName());
         date.setText(((MyAccountActivityDetails) artist.get(pos)).getDate());
         status.setText(((MyAccountActivityDetails) artist.get(pos)).getStatus());

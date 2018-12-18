@@ -16,6 +16,7 @@ public class PreferencesManager {
     public static  int getUserId(Context c){
         return getPreferences(c).getInt("userId", 0);
     }
+
     public static void setCompanyId(int companyId, Context context){
         getPreferences(context).edit().putInt("companyId", companyId).apply();
     }

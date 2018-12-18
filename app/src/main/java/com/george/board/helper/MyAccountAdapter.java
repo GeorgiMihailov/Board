@@ -1,12 +1,13 @@
 package com.george.board.helper;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.george.board.Main2Activity;
 import com.george.board.R;
-import com.george.board.model.MyAccountActivity;
 import com.george.board.model.MyAccountActivityDetails;
 import com.thoughtbot.expandablerecyclerview.ExpandableRecyclerViewAdapter;
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
@@ -32,6 +33,7 @@ public class MyAccountAdapter extends ExpandableRecyclerViewAdapter<MyAccountAct
     @Override
     public MyAccountActivityDetailsViewHolder onCreateChildViewHolder(ViewGroup parent, int viewType) {
         View view = inflater.inflate(R.layout.secondary_myactivity_window, parent, false);
+
         return new MyAccountActivityDetailsViewHolder(view);
     }
 
@@ -40,6 +42,14 @@ public class MyAccountAdapter extends ExpandableRecyclerViewAdapter<MyAccountAct
                                       int childIndex) {
         final ArrayList<MyAccountActivityDetails> artist = (ArrayList<MyAccountActivityDetails>) group.getItems();
         holder.onBind(artist, childIndex);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), Main2Activity.class);
+                intent.putExtra("cardId", artist.get(flatPosition).getId());
+                v.getContext().startActivity(intent);
+            }
+        });
     }
 
     @Override
