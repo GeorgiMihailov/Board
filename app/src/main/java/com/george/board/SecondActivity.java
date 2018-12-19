@@ -4,9 +4,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
@@ -29,6 +34,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DecodeFormat;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.george.board.api.RestApi;
 import com.george.board.helper.PreferencesManager;
 import com.george.board.model.BoardCardList;
@@ -77,6 +88,7 @@ public class SecondActivity extends AppCompatActivity {
     private String userLastname;
     private int selectedItemId;
     private int defaultSelectedMultiSpinner;
+    RelativeLayout root;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,20 +99,39 @@ public class SecondActivity extends AppCompatActivity {
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(Color.parseColor(PreferencesManager.getAccentColor(this)));
 
-
-        window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
         BoardCardList boardCardList;
         button = findViewById(R.id.send_btn);
         attachFileBtn = findViewById(R.id.attach_file);
         sendList = new ArrayList<>();
         spinners = new ArrayList<>();
         editTexts = new ArrayList<>();
+        root = findViewById(R.id.background_second_activity);
         userId = PreferencesManager.getUserId(this);
         userName = PreferencesManager.getUserName(this);
         userLastname = PreferencesManager.getUserLastname(this);
         tf = ResourcesCompat.getFont(this, R.font.raleway_regular);
+        Glide.with(SecondActivity.this)
+                .load(PreferencesManager.getUserBackground(SecondActivity.this))
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).format(DecodeFormat.PREFER_ARGB_8888)
+                        .override(Target.SIZE_ORIGINAL))
+                .into(new SimpleTarget<Drawable>() {
 
+                    @Override
+                    public void onLoadStarted(@Nullable Drawable resource) {
+                        root.setBackground(resource);
+                    }
+
+                    @Override
+                    public void onResourceReady(@NonNull Drawable resource, Transition<? super Drawable> transition) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            root.setBackground(resource);
+                            Drawable cardViewBackground = root.getBackground();
+                            cardViewBackground.setColorFilter(0x5F000000, PorterDuff.Mode.SRC_ATOP);
+                        }
+                    }
+                });
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -146,7 +177,7 @@ public class SecondActivity extends AppCompatActivity {
                         if (response.isSuccessful()) {
                             ConfigFormsList forms = new ConfigFormsList();
                             ArrayList<ConfigForms> FORM = new ArrayList<>();
-                            if (response.body()!=null){
+                            if (response.body() != null) {
                                 forms = response.body();
                                 FORM = forms.getForms();
                                 for (int i = 0; i < FORM.size(); i++) {
@@ -212,15 +243,15 @@ public class SecondActivity extends AppCompatActivity {
                     break;
                 case "DROPDOWN":
                     Spinner spinner = (Spinner) editTexts.get(i);
-                   DropdownItem selectedItem = (DropdownItem) spinner.getSelectedItem();
+                    DropdownItem selectedItem = (DropdownItem) spinner.getSelectedItem();
                     selectedItemId = selectedItem.getId();
                     sendList.get(i).setDefaultValue(String.valueOf(selectedItemId));
                     break;
-                    case "MULTIDROPDOWN":
-                        if (multi.isEmpty()){
-                            String val = String.valueOf(arrayAdapter.getItem(i).getId());
-                            sendList.get(i).setDefaultValue(String.valueOf(val));
-                            }
+                case "MULTIDROPDOWN":
+                    if (multi.isEmpty()) {
+                        String val = String.valueOf(arrayAdapter.getItem(i).getId());
+                        sendList.get(i).setDefaultValue(String.valueOf(val));
+                    }
 
 
                 case "DATE":
@@ -362,7 +393,7 @@ public class SecondActivity extends AppCompatActivity {
                     array.add(dropdownItem);
                 }
                 DropdownItem spinnerTitle = new DropdownItem();
-                spinnerTitle.setName( forms.getName());
+                spinnerTitle.setName(forms.getName());
                 array.add(0, spinnerTitle);
                 RelativeLayout.LayoutParams paramsForText = new RelativeLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -415,7 +446,7 @@ public class SecondActivity extends AppCompatActivity {
                 multiSpinner.setAdapter(arrayAdapter, true, onSelectedListener);
                 boolean[] selectedItems = new boolean[arrayAdapter.getCount()];
                 selectedItems[0] = true;
-                 defaultSelectedMultiSpinner = arrayAdapter.getItem(0).getId();
+                defaultSelectedMultiSpinner = arrayAdapter.getItem(0).getId();
                 multiSpinner.setSelected(selectedItems);
                 multiSpinner.setDefaultText("CHOOSE WISELY");
                 multiSpinner.setTag("MULTIDROPDOWN");

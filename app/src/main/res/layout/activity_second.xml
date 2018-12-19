@@ -1,79 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout android:layout_height="match_parent"
-    android:layout_width="match_parent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/forms_background"
-    android:orientation="vertical"
-    xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <include android:id="@+id/custom_view"
-        layout="@layout/custom_view"/>
-    <!--<TextView-->
-        <!--app:layout_constraintTop_toBottomOf="@id/custom_view"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_margin="20dp"-->
-        <!--android:text="Аплицирај"-->
-        <!--android:gravity="center"-->
-        <!--android:textSize="20sp"-->
-        <!--android:textStyle="bold"-->
-        <!--android:fontFamily="@font/raleway_regular"-->
-        <!--android:background="@drawable/apply_shape"/>-->
-
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/background_second_activity"
     android:layout_width="match_parent"
-    android:layout_above="@id/btns"
-    android:layout_marginTop="100dp"
-    android:layout_below="@id/custom_view"
     android:layout_height="match_parent">
 
+    <include
+        android:id="@+id/custom_view"
+        layout="@layout/custom_view" />
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/layout"
+
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        tools:context=".SecondActivity">
+        android:layout_above="@id/btns"
+        android:layout_below="@id/custom_view"
+        android:layout_marginTop="100dp">
 
-    </LinearLayout>
-</ScrollView>
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            tools:context=".SecondActivity">
+
+        </LinearLayout>
+    </ScrollView>
+
     <LinearLayout
         android:id="@+id/btns"
         android:layout_width="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
         <Button
             android:id="@+id/attach_file"
-            android:layout_margin="4dp"
             android:layout_width="0dp"
-            android:layout_weight="1"
-            android:textStyle="bold"
             android:layout_height="wrap_content"
-            android:paddingStart="50dp"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/rec_black"
             android:drawableStart="@drawable/ic_attach_file_black_24dp"
-            android:textSize="15sp"
+            android:fontFamily="@font/raleway_regular"
             android:gravity="start|center"
+            android:paddingStart="50dp"
             android:text="Прикачи"
             android:textColor="@android:color/white"
-            android:fontFamily="@font/raleway_regular"
-            android:background="@drawable/rec_black"
-     />
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
         <Button
             android:id="@+id/send_btn"
             android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:textStyle="bold"
-            android:text="Поднеси"
-            android:textSize="15sp"
-            android:textColor="@android:color/white"
-            android:fontFamily="@font/raleway_regular"
+            android:layout_weight="1"
             android:background="@drawable/rec_black"
-            android:layout_height="wrap_content" />
+            android:fontFamily="@font/raleway_regular"
+            android:text="Поднеси"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

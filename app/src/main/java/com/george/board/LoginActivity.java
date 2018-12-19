@@ -124,7 +124,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         ButterKnife.bind(this);
-        Picasso.with(this).load(R.mipmap.ic_launcher).centerInside().fit().into(logoImg);
+        Picasso.get().load(R.mipmap.ic_launcher).centerInside().fit().into(logoImg);
         loginBtn.setOnClickListener((View view) -> startAuth());
 
         if (!mConfiguration.isValid()) {

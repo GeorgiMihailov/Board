@@ -1,15 +1,12 @@
 package com.george.board;
 
-import android.os.Parcel;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.george.board.api.RestApi;
@@ -45,14 +42,15 @@ public class MyActivity_activity extends AppCompatActivity {
     private ExecutorService mExecutor;
     private Configuration mConfiguration;
     private static String ACCESS_TOKEN = "";
+    private Window window;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Window window = getWindow();
+        window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+        window.setStatusBarColor(Color.parseColor(PreferencesManager.getAccentColor(this)));
         setContentView(R.layout.activity_my_activity);
 
         api=new RestApi(MyActivity_activity.this);

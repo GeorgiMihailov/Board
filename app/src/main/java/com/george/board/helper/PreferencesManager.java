@@ -10,6 +10,39 @@ public class PreferencesManager {
         return context.getApplicationContext().getSharedPreferences("MySharedPreferencesFile", Activity.MODE_PRIVATE);
     }
 
+    public static void setUserBackground(Context c, String background){
+        getPreferences(c).edit().putString("background",background).apply();
+    }
+    public static  String getUserBackground(Context c){
+        return getPreferences(c).getString("background", "");
+    }
+    public static void setPrimaryColor(Context c, String primaryColor){
+        getPreferences(c).edit().putString("primaryColor",primaryColor).apply();
+    }
+    public static  String getPrimaryColor(Context c){
+        return getPreferences(c).getString("primaryColor", "");
+    }
+    public static void setPrimaryDarkColor(Context c, String primaryDarkColor){
+        getPreferences(c).edit().putString("primaryColor",primaryDarkColor).apply();
+    }
+    public static  String getPrimaryDarkColor(Context c){
+        return getPreferences(c).getString("primaryColor", "");
+    }
+    public static void setAccentColor(Context c, String accentColor){
+        getPreferences(c).edit().putString("primaryColor",accentColor).apply();
+    }
+    public static  String getAccentColor(Context c){
+        return getPreferences(c).getString("primaryColor", "");
+    }
+    public static void setLogo(Context c, String logo){
+        getPreferences(c).edit().putString("primaryColor",logo).apply();
+    }
+    public static  String getLogo(Context c){
+        return getPreferences(c).getString("primaryColor", "");
+    }
+
+
+
     public static void setUserId(Context c, int userId){
         getPreferences(c).edit().putInt("userId", userId).apply();
     }

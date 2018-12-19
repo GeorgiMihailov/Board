@@ -4,28 +4,30 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
+
 import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
@@ -34,10 +36,18 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ExpandableListView;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DecodeFormat;
+
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.george.board.api.RestApi;
 import com.george.board.appAuth.AuthStateManager;
 import com.george.board.appAuth.Configuration;
@@ -48,7 +58,6 @@ import com.george.board.model.BoardCard;
 import com.george.board.model.BoardCardList;
 import com.george.board.model.ExpandedMenuModel;
 import com.george.board.model.Menues;
-import com.squareup.picasso.Picasso;
 
 import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthState;
@@ -90,20 +99,19 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
     ArrayList<Menues> menues;
     private Menues menu;
     private NavigationView navigationView;
-    TextView credit;
     TextView card;
-    TextView accounts;
-    TextView calc;
-    TextView excahne;
-    TextView atm;
-    TextView deposit;
+
+
+
+    private String colorPrimary;
+    private String colorPrimaryDark;
+    private String colorAccent;
+
     TextView add;
     ConstraintLayout rootView;
-    TextView cardText;
     int cardId;
     int boardId;
     ArrayList<BoardCard> boardCards;
-    BoardCard BoardCard;
     ExpandableListAdapter mMenuAdapter;
     ExpandableListView expandableList;
     List<ExpandedMenuModel> listDataHeader;
@@ -112,14 +120,10 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
     ConstraintLayout constraintLayout;
     int angle = 0;
     int radius = 130;
-    ConstraintSet c;
     private long expiry;
 
 
-    private TextView creditText;
     private CircleImageView centerImage;
-    private ConstraintLayout parentLayouy;
-    private TextView icontext;
     private Typeface ta;
     private Typeface tf;
     private RelativeLayout.LayoutParams params;
@@ -142,7 +146,9 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
     private String profilePicture;
     public int companyId;
     private String lastName;
-    private ConstraintLayout backgorund;
+    private URL url;
+    private String logo;
+    ImageView menuBtn;
 
 
     @Override
@@ -151,17 +157,17 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+        window.setStatusBarColor(Color.parseColor(PreferencesManager.getAccentColor(this)));
         setContentView(R.layout.activity_main);
 
 
 //
         api = new RestApi(this);
         boardCards = new ArrayList<>();
-        backgorund = findViewById(R.id.background);
         constraintLayout = findViewById(R.id.circle_view_holder);
         rootView = findViewById(R.id.root);
         centerImage = findViewById(R.id.sun_image);
+        menuBtn = findViewById(R.id.menu_btn);
         expandableList = findViewById(R.id.navigationmenu);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -169,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         centerImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,MyActivity_activity.class));
+                startActivity(new Intent(MainActivity.this, MyActivity_activity.class));
             }
         });
 
@@ -199,14 +205,14 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                 if (ex != null) {
                     return;
                 }
-                ACCESS_TOKEN = accessToken; PreferencesManager.addAccessToken(ACCESS_TOKEN,this);
+                ACCESS_TOKEN = accessToken;
+                PreferencesManager.addAccessToken(ACCESS_TOKEN, this);
                 if (mStateManager.getCurrent().getAccessTokenExpirationTime() != null) {
                     expiry = mStateManager.getCurrent().getAccessTokenExpirationTime();
                     PreferencesManager.addTokenExpiry(MainActivity.this, expiry);
                 }
             });
         }
-
 
 
         config = Configuration.getInstance(this);
@@ -219,10 +225,10 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                     .build());
         }
         mStateManager.getCurrent().performActionWithFreshTokens(mAuthService, (accessToken, idToken, ex) -> {
-                    if (ex != null) {
-                        return;
-                    }
-                });
+            if (ex != null) {
+                return;
+            }
+        });
 
         if (config.hasConfigurationChanged()) {
             Toast.makeText(
@@ -378,10 +384,32 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
 
     private void prepareListData() {
 
+
         listDataHeader = new ArrayList<>();
         listDataChild = new HashMap<>();
         constraintSet.constrainWidth(R.id.sun_image, (int) convertDpToPixel(130, MainActivity.this));
         constraintSet.constrainHeight(R.id.sun_image, (int) convertDpToPixel(130, MainActivity.this));
+        Glide.with(MainActivity.this)
+                .load(PreferencesManager.getUserBackground(MainActivity.this))
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).format(DecodeFormat.PREFER_ARGB_8888)
+                        .override(Target.SIZE_ORIGINAL))
+                .into(new SimpleTarget<Drawable>() {
+
+                    @Override
+                    public void onLoadStarted(@Nullable Drawable resource) {
+                        rootView.setBackground(resource);
+                    }
+
+                    @Override
+                    public void onResourceReady(@NonNull Drawable resource, Transition<? super Drawable> transition) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            rootView.setBackground(resource);
+                            Drawable cardViewBackground = rootView.getBackground();
+                            cardViewBackground.setColorFilter(0x5F000000, PorterDuff.Mode.SRC_ATOP);
+                        }
+                    }
+                });
+
 
         api.checkInternet(() -> {
             Call<ArrayList<Menues>> call = api.getMenues();
@@ -409,7 +437,7 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                                     iconHolder.setTextSize(60);
                                     ta = ResourcesCompat.getFont(MainActivity.this, R.font.bankicon);
                                     iconHolder.setTypeface(ta);
-                                    if(!menues.get(i).getIcon().isEmpty()){
+                                    if (!menues.get(i).getIcon().isEmpty()) {
                                         String v = (menues.get(i).getIcon());
                                         g = new String(Character.toChars(Integer.parseInt(
                                                 v, 16)));
@@ -419,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                                     iconHolder.setTextSize(32);
                                     ta = ResourcesCompat.getFont(MainActivity.this, R.font.fontawesome_webfont);
                                     iconHolder.setTypeface(ta);
-                                    if(!menues.get(i).getIcon().isEmpty()){
+                                    if (!menues.get(i).getIcon().isEmpty()) {
                                         String v = (menues.get(i).getIcon());
                                         g = new String(Character.toChars(Integer.parseInt(
                                                 v, 16)));
@@ -646,11 +674,7 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         if (ex != null) {
             Log.e(TAG, "Token refresh failed when fetching user info");
             mUserInfoJson.set(null);
-
-
         }
-
-
         AuthorizationServiceDiscovery discovery =
                 mStateManager.getCurrent()
                         .getAuthorizationServiceConfiguration()
@@ -664,8 +688,6 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                             : new URL(discovery.getUserinfoEndpoint().toString());
         } catch (MalformedURLException urlEx) {
             Log.e(TAG, "Failed to construct user info endpoint URL", urlEx);
-
-
         }
 
         URL finalUserInfoEndpoint = userInfoEndpoint;
@@ -680,22 +702,26 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                 mUserInfoJson.set(new JSONObject(response));
                 ACCESS_TOKEN = accessToken;
                 companyId = mUserInfoJson.get().getInt("CompanyId");
-                PreferencesManager.setCompanyId(companyId,MainActivity.this);
+                PreferencesManager.setCompanyId(companyId, MainActivity.this);
                 userId = mUserInfoJson.get().getInt("id");
                 PreferencesManager.setUserId(MainActivity.this, userId);
                 profilePicture = mUserInfoJson.get().getString("picture");
                 PreferencesManager.setUserPicture(profilePicture, MainActivity.this);
                 name = mUserInfoJson.get().getString("given_name");
-                PreferencesManager.setUserName(name,MainActivity.this);
+                PreferencesManager.setUserName(name, MainActivity.this);
                 lastName = mUserInfoJson.get().getString("family_name");
-                PreferencesManager.setUserLastname(lastName,MainActivity.this);
+                PreferencesManager.setUserLastname(lastName, MainActivity.this);
                 PreferencesManager.addAccessToken(ACCESS_TOKEN, MainActivity.this);
-                URL url = new URL(mUserInfoJson.get().getString("BackgroundPicture"));
-                Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                Drawable background = new BitmapDrawable(getResources(), bmp);
-                backgorund.setBackground(background);
-
-
+                url = new URL(mUserInfoJson.get().getString("BackgroundPicture"));
+                PreferencesManager.setUserBackground(MainActivity.this, url.toString());
+                colorPrimary = mUserInfoJson.get().getString("ColorPrimary");
+                colorPrimaryDark = mUserInfoJson.get().getString("ColorPrimaryDark");
+                colorAccent = mUserInfoJson.get().getString("ColorAccent");
+                logo = mUserInfoJson.get().getString("Logo");
+                PreferencesManager.setLogo(MainActivity.this,logo);
+                PreferencesManager.setPrimaryColor(MainActivity.this,colorPrimary);
+                PreferencesManager.setPrimaryDarkColor(MainActivity.this,colorPrimaryDark);
+                PreferencesManager.setAccentColor(MainActivity.this,colorAccent);
 
 
             } catch (IOException ioEx) {
@@ -706,8 +732,6 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                 Log.e(TAG, "Failed to parse userinfo response");
                 showSnackbar("Failed to parse user info");
             }
-
-
         });
     }
 
@@ -719,15 +743,6 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
                 .show();
     }
 
-
-
-//    @MainThread
-//    public void refreshAccessToken() {
-//
-//        performTokenRequest(
-//                mStateManager.getCurrent().createTokenRefreshRequest(),
-//                this::handleAccessTokenResponse);
-//    }
 
     @Override
     public void onStart() {
@@ -800,6 +815,7 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         super.onPause();
 
     }
+
 
 }
 
