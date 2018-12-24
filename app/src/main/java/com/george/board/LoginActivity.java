@@ -2,10 +2,9 @@ package com.george.board;
 
 import android.annotation.TargetApi;
 import android.app.PendingIntent;
-
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.ColorRes;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
@@ -13,16 +12,13 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
-
 
 import com.george.board.appAuth.AuthStateManager;
 import com.george.board.appAuth.Configuration;
@@ -32,19 +28,15 @@ import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationRequest;
-
 import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.ClientSecretBasic;
 import net.openid.appauth.RegistrationRequest;
 import net.openid.appauth.RegistrationResponse;
 import net.openid.appauth.ResponseTypeValues;
-
 import net.openid.appauth.browser.AnyBrowserMatcher;
 import net.openid.appauth.browser.BrowserMatcher;
 import net.openid.appauth.browser.ExactBrowserMatcher;
-
-
 
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;

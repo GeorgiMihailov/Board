@@ -23,22 +23,22 @@ public class PreferencesManager {
         return getPreferences(c).getString("primaryColor", "");
     }
     public static void setPrimaryDarkColor(Context c, String primaryDarkColor){
-        getPreferences(c).edit().putString("primaryColor",primaryDarkColor).apply();
+        getPreferences(c).edit().putString("primaryDarkColor",primaryDarkColor).apply();
     }
     public static  String getPrimaryDarkColor(Context c){
-        return getPreferences(c).getString("primaryColor", "");
+        return getPreferences(c).getString("primaryDarkColor", "");
     }
     public static void setAccentColor(Context c, String accentColor){
-        getPreferences(c).edit().putString("primaryColor",accentColor).apply();
+        getPreferences(c).edit().putString("accentColor",accentColor).apply();
     }
     public static  String getAccentColor(Context c){
-        return getPreferences(c).getString("primaryColor", "");
+        return getPreferences(c).getString("accentColor", "");
     }
     public static void setLogo(Context c, String logo){
-        getPreferences(c).edit().putString("primaryColor",logo).apply();
+        getPreferences(c).edit().putString("logo",logo).apply();
     }
     public static  String getLogo(Context c){
-        return getPreferences(c).getString("primaryColor", "");
+        return getPreferences(c).getString("logo", "");
     }
 
 

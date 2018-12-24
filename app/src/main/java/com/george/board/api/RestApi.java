@@ -24,14 +24,14 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RestApi {
-    public static final int request_max_time_in_seconds = 20;
+    private static final int request_max_time_in_seconds = 20;
     private Context activity;
 
     public RestApi(Context activity) {
         this.activity = activity;
     }
 
-    public Retrofit getRetrofitInstance() {
+    private Retrofit getRetrofitInstance() {
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new LoggingInterceptor())
                 .readTimeout(request_max_time_in_seconds, TimeUnit.SECONDS)

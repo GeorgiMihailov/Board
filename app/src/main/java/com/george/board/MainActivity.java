@@ -23,9 +23,6 @@ import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -85,10 +82,9 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
 
     private RestApi api;
-    private int subItem;
+
     ArrayList<Menues> menues;
     private Menues menu;
-    private NavigationView navigationView;
     TextView card;
 
 
@@ -100,18 +96,15 @@ public class MainActivity extends AppCompatActivity {
     TextView add;
     TextView navigationDraweAccentTitle;
     ConstraintLayout rootView;
-    int cardId;
-    int boardId;
     ArrayList<BoardCard> boardCards;
     ExpandableListAdapter mMenuAdapter;
     ExpandableListView expandableList;
     List<ExpandedMenuModel> listDataHeader;
     HashMap<ExpandedMenuModel, List<ExpandedMenuModel>> listDataChild;
-    private DrawerLayout mDrawerLayout;
     ConstraintLayout constraintLayout;
     int angle = 0;
     int radius = 130;
-    private long expiry;
+
 
 
     private CircleImageView centerImage;
@@ -179,10 +172,10 @@ public class MainActivity extends AppCompatActivity {
         pb = findViewById(R.id.progress_bar_holder);
         menuBtn = findViewById(R.id.menu_btn);
         expandableList = findViewById(R.id.navigationmenu);
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         View view = navigationView.getHeaderView(0);
         navigationDraweAccentTitle = view.findViewById(R.id.drawerAccent);
-        mDrawerLayout = findViewById(R.id.drawer_layout);
+        DrawerLayout mDrawerLayout = findViewById(R.id.drawer_layout);
         expandableList.setGroupIndicator(null);
         centerImage.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, MyActivity_activity.class)));
         ta = ResourcesCompat.getFont(this, R.font.bankicon);
@@ -216,32 +209,44 @@ public class MainActivity extends AppCompatActivity {
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
         }
-        mDragger.setAccessible(true);
+        if (mDragger != null) {
+            mDragger.setAccessible(true);
+        }
         ViewDragHelper draggerObj = null;
         try {
-            draggerObj = (ViewDragHelper) mDragger
-                    .get(mDrawerLayout);
+            if (mDragger != null) {
+                draggerObj = (ViewDragHelper) mDragger
+                        .get(mDrawerLayout);
+            }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
 
         Field mEdgeSize = null;
         try {
-            mEdgeSize = draggerObj.getClass().getDeclaredField(
-                    "mEdgeSize");
+            if (draggerObj != null) {
+                mEdgeSize = draggerObj.getClass().getDeclaredField(
+                        "mEdgeSize");
+            }
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
         }
-        mEdgeSize.setAccessible(true);
+        if (mEdgeSize != null) {
+            mEdgeSize.setAccessible(true);
+        }
         int edge = 40;
         try {
-            edge = mEdgeSize.getInt(draggerObj);
+            if (mEdgeSize != null) {
+                edge = mEdgeSize.getInt(draggerObj);
+            }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
 
         try {
-            mEdgeSize.setInt(draggerObj, edge * 5); //optimal value as for me, you may set any constant in dp
+            if (mEdgeSize != null) {
+                mEdgeSize.setInt(draggerObj, edge * 5); //optimal value as for me, you may set any constant in dp
+            }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -252,6 +257,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "Failed to parse saved user info JSON, discarding", ex);
             }
         }
+        menuBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!mDrawerLayout.isDrawerOpen(mDrawerLayout.getId()))
+                    mDrawerLayout.openDrawer(navigationView);
+            }
+        });
 
 
 
@@ -261,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -269,39 +281,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.clear();
-        menu.add(0, Menu.FIRST, Menu.NONE, "TEST ITEM").setIcon(R.drawable.ic_add_ticket);
-        SubMenu sub = menu.addSubMenu(0, Menu.FIRST, Menu.NONE, "SUB ITEM");
-        subItem = sub.getItem(2).getItemId();
-        return super.onPrepareOptionsMenu(menu);
-    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
 
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        if (id == 2)
-            startActivity(new Intent(this, SecondActivity.class));
-
-        return super.onOptionsItemSelected(item);
-    }
 
 
     private void prepareListData() {
@@ -332,140 +313,141 @@ public class MainActivity extends AppCompatActivity {
                     Call<ArrayList<Menues>> call = api.getMenues();
                     call.enqueue(new Callback<ArrayList<Menues>>() {
                         @Override
-                        public void onResponse(Call<ArrayList<Menues>> call, Response<ArrayList<Menues>> response) {
+                        public void onResponse(@NonNull Call<ArrayList<Menues>> call, @NonNull Response<ArrayList<Menues>> response) {
                             if (response.isSuccessful()) {
                                 menues = response.body();
-                                int size = menues.size();
-                                double angleSize = 360 / size;
+                                int size = 0;
                                 if (menues != null) {
-                                    for (int i = 0; i < size; i++) {
-                                        RelativeLayout relativeLayout = new RelativeLayout(MainActivity.this);
-                                        relativeLayout.setId(View.generateViewId());
-                                        params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                                        params.addRule(RelativeLayout.CENTER_HORIZONTAL);
-
-                                        TextView iconHolder = new TextView(MainActivity.this);
-                                        iconHolder.setWidth((int) convertDpToPixel(70, MainActivity.this));
-                                        iconHolder.setId(View.generateViewId());
-                                        iconHolder.setHeight((int) convertDpToPixel(70, MainActivity.this));
-
-                                        if (menues.get(i).getIcon().startsWith("e")) {
-                                            iconHolder.setPadding((int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), 0);
-                                            iconHolder.setTextSize(60);
-                                            ta = ResourcesCompat.getFont(MainActivity.this, R.font.bankicon);
-                                            iconHolder.setTypeface(ta);
-                                            if (!menues.get(i).getIcon().isEmpty()) {
-                                                String v = (menues.get(i).getIcon());
-                                                g = new String(Character.toChars(Integer.parseInt(
-                                                        v, 16)));
-                                            }
-                                        } else {
-                                            iconHolder.setPadding((int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), 0);
-                                            iconHolder.setTextSize(32);
-                                            ta = ResourcesCompat.getFont(MainActivity.this, R.font.fontawesome_webfont);
-                                            iconHolder.setTypeface(ta);
-                                            if (!menues.get(i).getIcon().isEmpty()) {
-                                                String v = (menues.get(i).getIcon());
-                                                g = new String(Character.toChars(Integer.parseInt(
-                                                        v, 16)));
-                                            }
-
-                                        }
-
-
-                                        iconHolder.setText(g);
-                                        iconHolder.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                                        iconHolder.setTextColor(getColor(R.color.colorAccent));
-                                        iconHolder.setBackground(getDrawable(R.drawable.rounded_textview));
-                                        iconHolder.setLayoutParams(params);
-                                        relativeLayout.addView(iconHolder);
-
-                                        RelativeLayout.LayoutParams paramsForText = new RelativeLayout.LayoutParams(
-                                                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                                        paramsForText.addRule(RelativeLayout.BELOW, iconHolder.getId());
-                                        paramsForText.addRule(RelativeLayout.CENTER_HORIZONTAL);
-
-                                        TextView iconText = new TextView(MainActivity.this);
-                                        iconText.setLayoutParams(paramsForText);
-                                        iconText.setId(View.generateViewId());
-                                        iconText.setTextSize(18);
-                                        iconText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                                        iconText.setTypeface(tf, Typeface.BOLD);
-                                        iconText.setTextColor(getColor(R.color.colorAccent));
-                                        if (menues.get(i).getLabel().length() <= 10) {
-                                            iconText.setText(menues.get(i).getLabel());
-                                        } else {
-                                            String substring = menues.get(i).getLabel().substring(0, 6);
-                                            String text = substring + "...";
-                                            iconText.setText(text);
-                                        }
-
-                                        relativeLayout.addView(iconText);
-                                        constraintLayout.addView(relativeLayout);
-
-
-                                        constraintSet.clone(constraintLayout);
-                                        constraintSet.connect(R.id.sun_image, ConstraintSet.BOTTOM, R.id.circle_view_holder, ConstraintSet.BOTTOM, 0);
-                                        constraintSet.connect(R.id.sun_image, ConstraintSet.TOP, R.id.circle_view_holder, ConstraintSet.TOP, 0);
-                                        constraintSet.connect(R.id.sun_image, ConstraintSet.START, R.id.circle_view_holder, ConstraintSet.START, 0);
-                                        constraintSet.connect(R.id.sun_image, ConstraintSet.END, R.id.circle_view_holder, ConstraintSet.END, 0);
-                                        constraintSet.setVerticalBias(R.id.sun_image, 0.77f);
-                                        constraintSet.constrainCircle(relativeLayout.getId(), R.id.sun_image, (int) convertDpToPixel(120, MainActivity.this), angle);
-                                        angle += angleSize;
-
-                                        constraintSet.applyTo(constraintLayout);
-
-                                        menu = menues.get(i);
-                                        if (menu.getSubmenu().size() > 0) {
-                                            ExpandedMenuModel item1 = new ExpandedMenuModel();
-                                            item1.setIconImgText(menu.getIcon());
-                                            item1.setUrl(menu.getUrl());
-                                            item1.setIconName(menu.getLabel());
-                                            listDataHeader.add(item1);
-                                            List<ExpandedMenuModel> expandedMenuModels1 = new ArrayList<>();
-                                            for (int e = 0; e < menu.getSubmenu().size(); e++) {
-                                                String tl = menu.getSubmenu().get(e).getUrl();
-                                                ExpandedMenuModel subMenuItem = new ExpandedMenuModel();
-                                                String b = (menu.getSubmenu().get(e).getIcon());
-                                                String c = new String(Character.toChars(Integer.parseInt(
-                                                        b, 16)));
-
-                                                subMenuItem.setIconImgText(c);
-                                                subMenuItem.setUrl(tl);
-                                                subMenuItem.setIconName(menu.getSubmenu().get(e).getLabel());
-                                                expandedMenuModels1.add(subMenuItem);
-                                            }
-                                            listDataChild.put(listDataHeader.get(i), expandedMenuModels1);
-                                        } else {
-                                            ExpandedMenuModel item1 = new ExpandedMenuModel();
-                                            item1.setIconImgText(menu.getIcon());
-                                            item1.setIconName(menu.getLabel());
-                                            item1.setUrl(menu.getUrl());
-                                            listDataHeader.add(item1);
-                                            listDataChild.put(listDataHeader.get(i), new ArrayList<>());
-
-                                        }
-                                    }
-                                    GlideApp.with(MainActivity.this)
-                                            .load(PreferencesManager.getUserBackground(MainActivity.this))
-                                            .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
-                                                    .override(Target.SIZE_ORIGINAL))
-                                            .into(target);
-                                    mMenuAdapter = new ExpandableListAdapter(MainActivity.this, listDataHeader, listDataChild, expandableList);
-                                    expandableList.setAdapter(mMenuAdapter);
-                                    window = getWindow();
-                                    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                                    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                                    window.setStatusBarColor(Color.parseColor(PreferencesManager.getAccentColor(MainActivity.this)));
-                                    centerImage.setVisibility(View.VISIBLE);
-                                    navigationDraweAccentTitle.setBackgroundColor(Color.parseColor(colorPrimary));
-                                    pb.setVisibility(View.GONE);
+                                    size = menues.size();
                                 }
+                                double angleSize = 360 / size;
+                                for (int i = 0; i < size; i++) {
+                                    RelativeLayout relativeLayout = new RelativeLayout(MainActivity.this);
+                                    relativeLayout.setId(View.generateViewId());
+                                    params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                                    params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+
+                                    TextView iconHolder = new TextView(MainActivity.this);
+                                    iconHolder.setWidth((int) convertDpToPixel(70, MainActivity.this));
+                                    iconHolder.setId(View.generateViewId());
+                                    iconHolder.setHeight((int) convertDpToPixel(70, MainActivity.this));
+
+                                    if (menues.get(i).getIcon().startsWith("e")) {
+                                        iconHolder.setPadding((int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), 0);
+                                        iconHolder.setTextSize(60);
+                                        ta = ResourcesCompat.getFont(MainActivity.this, R.font.bankicon);
+                                        iconHolder.setTypeface(ta);
+                                        if (!menues.get(i).getIcon().isEmpty()) {
+                                            String v = (menues.get(i).getIcon());
+                                            g = new String(Character.toChars(Integer.parseInt(
+                                                    v, 16)));
+                                        }
+                                    } else {
+                                        iconHolder.setPadding((int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), 0);
+                                        iconHolder.setTextSize(32);
+                                        ta = ResourcesCompat.getFont(MainActivity.this, R.font.fontawesome_webfont);
+                                        iconHolder.setTypeface(ta);
+                                        if (!menues.get(i).getIcon().isEmpty()) {
+                                            String v = (menues.get(i).getIcon());
+                                            g = new String(Character.toChars(Integer.parseInt(
+                                                    v, 16)));
+                                        }
+
+                                    }
+
+
+                                    iconHolder.setText(g);
+                                    iconHolder.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                                    iconHolder.setTextColor(getColor(R.color.colorAccent));
+                                    iconHolder.setBackground(getDrawable(R.drawable.rounded_textview));
+                                    iconHolder.setLayoutParams(params);
+                                    relativeLayout.addView(iconHolder);
+
+                                    RelativeLayout.LayoutParams paramsForText = new RelativeLayout.LayoutParams(
+                                            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                                    paramsForText.addRule(RelativeLayout.BELOW, iconHolder.getId());
+                                    paramsForText.addRule(RelativeLayout.CENTER_HORIZONTAL);
+
+                                    TextView iconText = new TextView(MainActivity.this);
+                                    iconText.setLayoutParams(paramsForText);
+                                    iconText.setId(View.generateViewId());
+                                    iconText.setTextSize(18);
+                                    iconText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                                    iconText.setTypeface(tf, Typeface.BOLD);
+                                    iconText.setTextColor(getColor(R.color.colorAccent));
+                                    if (menues.get(i).getLabel().length() <= 10) {
+                                        iconText.setText(menues.get(i).getLabel());
+                                    } else {
+                                        String substring = menues.get(i).getLabel().substring(0, 6);
+                                        String text = substring + "...";
+                                        iconText.setText(text);
+                                    }
+
+                                    relativeLayout.addView(iconText);
+                                    constraintLayout.addView(relativeLayout);
+
+
+                                    constraintSet.clone(constraintLayout);
+                                    constraintSet.connect(R.id.sun_image, ConstraintSet.BOTTOM, R.id.circle_view_holder, ConstraintSet.BOTTOM, 0);
+                                    constraintSet.connect(R.id.sun_image, ConstraintSet.TOP, R.id.circle_view_holder, ConstraintSet.TOP, 0);
+                                    constraintSet.connect(R.id.sun_image, ConstraintSet.START, R.id.circle_view_holder, ConstraintSet.START, 0);
+                                    constraintSet.connect(R.id.sun_image, ConstraintSet.END, R.id.circle_view_holder, ConstraintSet.END, 0);
+                                    constraintSet.setVerticalBias(R.id.sun_image, 0.77f);
+                                    constraintSet.constrainCircle(relativeLayout.getId(), R.id.sun_image, (int) convertDpToPixel(120, MainActivity.this), angle);
+                                    angle += angleSize;
+
+                                    constraintSet.applyTo(constraintLayout);
+
+                                    menu = menues.get(i);
+                                    if (menu.getSubmenu().size() > 0) {
+                                        ExpandedMenuModel item1 = new ExpandedMenuModel();
+                                        item1.setIconImgText(menu.getIcon());
+                                        item1.setUrl(menu.getUrl());
+                                        item1.setIconName(menu.getLabel());
+                                        listDataHeader.add(item1);
+                                        List<ExpandedMenuModel> expandedMenuModels1 = new ArrayList<>();
+                                        for (int e = 0; e < menu.getSubmenu().size(); e++) {
+                                            String tl = menu.getSubmenu().get(e).getUrl();
+                                            ExpandedMenuModel subMenuItem = new ExpandedMenuModel();
+                                            String b = (menu.getSubmenu().get(e).getIcon());
+                                            String c = new String(Character.toChars(Integer.parseInt(
+                                                    b, 16)));
+
+                                            subMenuItem.setIconImgText(c);
+                                            subMenuItem.setUrl(tl);
+                                            subMenuItem.setIconName(menu.getSubmenu().get(e).getLabel());
+                                            expandedMenuModels1.add(subMenuItem);
+                                        }
+                                        listDataChild.put(listDataHeader.get(i), expandedMenuModels1);
+                                    } else {
+                                        ExpandedMenuModel item1 = new ExpandedMenuModel();
+                                        item1.setIconImgText(menu.getIcon());
+                                        item1.setIconName(menu.getLabel());
+                                        item1.setUrl(menu.getUrl());
+                                        listDataHeader.add(item1);
+                                        listDataChild.put(listDataHeader.get(i), new ArrayList<>());
+
+                                    }
+                                }
+                                GlideApp.with(MainActivity.this)
+                                        .load(PreferencesManager.getUserBackground(MainActivity.this))
+                                        .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                                                .override(Target.SIZE_ORIGINAL))
+                                        .into(target);
+                                mMenuAdapter = new ExpandableListAdapter(MainActivity.this, listDataHeader, listDataChild, expandableList);
+                                expandableList.setAdapter(mMenuAdapter);
+                                window = getWindow();
+                                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                                window.setStatusBarColor(Color.parseColor(PreferencesManager.getAccentColor(MainActivity.this)));
+                                centerImage.setVisibility(View.VISIBLE);
+                                navigationDraweAccentTitle.setBackgroundColor(Color.parseColor(colorPrimary));
+                                pb.setVisibility(View.GONE);
                             }
                         }
 
                         @Override
-                        public void onFailure(Call<ArrayList<Menues>> call, Throwable t) {
+                        public void onFailure(@NonNull Call<ArrayList<Menues>> call, @NonNull Throwable t) {
 
                         }
                     });
@@ -551,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
 
         mStateManager.updateAfterTokenResponse(tokenResponse, authException);
         long expiresAt = 0;
-        if (tokenResponse.accessTokenExpirationTime != null) {
+        if (tokenResponse != null && tokenResponse.accessTokenExpirationTime != null) {
             expiresAt = tokenResponse.accessTokenExpirationTime;
         }
         PreferencesManager.addTokenExpiry(MainActivity.this, expiresAt);
@@ -593,10 +575,12 @@ public class MainActivity extends AppCompatActivity {
 
         URL userInfoEndpoint = null;
         try {
-            userInfoEndpoint =
-                    mConfiguration.getUserInfoEndpointUri() != null
-                            ? new URL(mConfiguration.getUserInfoEndpointUri().toString())
-                            : new URL(discovery.getUserinfoEndpoint().toString());
+            if (discovery != null) {
+                userInfoEndpoint =
+                        mConfiguration.getUserInfoEndpointUri() != null
+                                ? new URL(mConfiguration.getUserInfoEndpointUri().toString())
+                                : new URL(discovery.getUserinfoEndpoint().toString());
+            }
         } catch (MalformedURLException urlEx) {
             Log.e(TAG, "Failed to construct user info endpoint URL", urlEx);
         }
@@ -605,11 +589,21 @@ public class MainActivity extends AppCompatActivity {
         mExecutor.submit(() -> {
             try {
                 HttpURLConnection conn =
-                        (HttpURLConnection) finalUserInfoEndpoint.openConnection();
-                conn.setRequestProperty("Authorization", "Bearer " + accessToken);
-                conn.setInstanceFollowRedirects(false);
-                String response = Okio.buffer(Okio.source(conn.getInputStream()))
-                        .readString(Charset.forName("UTF-8"));
+                        null;
+                if (finalUserInfoEndpoint != null) {
+                    conn = (HttpURLConnection) finalUserInfoEndpoint.openConnection();
+                }
+                if (conn != null) {
+                    conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+                }
+                if (conn != null) {
+                    conn.setInstanceFollowRedirects(false);
+                }
+                String response = null;
+                if (conn != null) {
+                    response = Okio.buffer(Okio.source(conn.getInputStream()))
+                            .readString(Charset.forName("UTF-8"));
+                }
                 mUserInfoJson.set(new JSONObject(response));
                 ACCESS_TOKEN = accessToken;
                 companyId = mUserInfoJson.get().getInt("CompanyId");
@@ -687,10 +681,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        } else if (ex != null) {
-//            displayNotAuthorized("Authorization flow failed: " + ex.getMessage());
-        } else {
-//            displayNotAuthorized("No authorization state retained - reauthorization required");
         }
 
 
@@ -717,9 +707,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onResume() {
-        if (PreferencesManager.getTokenExpiry(MainActivity.this) != 0) {
-            expiry = PreferencesManager.getTokenExpiry(MainActivity.this);
-        }
         super.onResume();
 
     }

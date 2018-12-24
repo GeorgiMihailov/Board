@@ -4,17 +4,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.DisplayMetrics;
@@ -24,35 +28,38 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ExpandableListView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomViewTarget;
-import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.george.board.api.RestApi;
 import com.george.board.appAuth.GlideApp;
+import com.george.board.helper.ExpandableListAdapter;
 import com.george.board.helper.PreferencesManager;
-import com.george.board.model.BoardCardList;
 import com.george.board.model.ConfigForms;
 import com.george.board.model.ConfigFormsList;
 import com.george.board.model.DropdownItem;
+import com.george.board.model.ExpandedMenuModel;
+import com.george.board.model.Menues;
 import com.george.board.model.SendForm;
 import com.thomashaertel.widget.MultiSpinner;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -62,10 +69,8 @@ import retrofit2.Response;
 public class SecondActivity extends AppCompatActivity {
     private LinearLayout constraintLayout;
     private RestApi api;
-    private ArrayList<EditText> list;
     private LinearLayout.LayoutParams p;
     Button button;
-    private Button attachFileBtn;
     ArrayList<ConfigForms> sendList;
     ConfigForms newForm;
     ArrayList<View> editTexts;
@@ -73,24 +78,24 @@ public class SecondActivity extends AppCompatActivity {
     SendForm sendForm;
     int a;
     int b;
-    private Uri filePath;
 
     ConstraintLayout holder;
-    private ArrayList<DropdownItem> array;
 
-    private String docFilePath;
-    private int REQUEST_CODE_DOC;
+
     private Typeface tf;
-    private ArrayAdapter<String> adapterMulti;
     private ArrayAdapter<DropdownItem> arrayAdapter;
     private String multi;
     private ConfigForms newFormMulti;
     private int userId;
     private String userName;
     private String userLastname;
-    private int selectedItemId;
-    private int defaultSelectedMultiSpinner;
     RelativeLayout root;
+
+    private Menues menu;
+    private ArrayList<Menues> menues;
+    List<ExpandedMenuModel> listDataHeader;
+    HashMap<ExpandedMenuModel, List<ExpandedMenuModel>> listDataChild;
+    private ExpandableListAdapter mMenuAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,10 +107,8 @@ public class SecondActivity extends AppCompatActivity {
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(Color.parseColor(PreferencesManager.getAccentColor(this)));
-
-        BoardCardList boardCardList;
         button = findViewById(R.id.send_btn);
-        attachFileBtn = findViewById(R.id.attach_file);
+        Button attachFileBtn = findViewById(R.id.attach_file);
         sendList = new ArrayList<>();
         spinners = new ArrayList<>();
         editTexts = new ArrayList<>();
@@ -114,6 +117,150 @@ public class SecondActivity extends AppCompatActivity {
         userName = PreferencesManager.getUserName(this);
         userLastname = PreferencesManager.getUserLastname(this);
         tf = ResourcesCompat.getFont(this, R.font.raleway_regular);
+        api = new RestApi(this);
+
+        NavigationView navigationView = findViewById(R.id.nav_view2);
+        View view = navigationView.getHeaderView(0);
+        TextView navigationDraweAccentTitle = view.findViewById(R.id.drawerAccent);
+        DrawerLayout mDrawerLayout = findViewById(R.id.drawer_layout);
+        View view2 = findViewById(R.id.custom_view);
+        ImageView menuBtn = view2.findViewById(R.id.menu_btn);
+        ExpandableListView expandableList = findViewById(R.id.navigationmenu);
+        expandableList.setGroupIndicator(null);
+        String color = PreferencesManager.getPrimaryColor(this);
+        navigationDraweAccentTitle.setBackgroundColor(Color.parseColor(color));
+
+        expandableList.setOnChildClickListener((expandableListView, view1, i, i1, l) -> {
+            android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
+            ExpandedMenuModel item = (ExpandedMenuModel) (eListAdapter.getChild(i, i1));
+            String url = item.getUrl();
+            startActivity(new Intent(SecondActivity.this, SecondActivity.class).putExtra("url", url));
+            return false;
+        });
+        expandableList.setOnGroupClickListener((expandableListView, view12, i, l) -> {
+            android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
+            ExpandedMenuModel item = (ExpandedMenuModel) eListAdapter.getGroup(i);
+            if (eListAdapter.getChildrenCount(i) == 0){
+                String url = item.getUrl();
+                startActivity(new Intent(SecondActivity.this, SecondActivity.class).putExtra("url", url));
+            }
+
+
+            return false;
+        });
+
+        Field mDragger = null;//mRightDragger for right obviously
+        try {
+            mDragger = mDrawerLayout.getClass().getDeclaredField(
+                    "mLeftDragger");
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        if (mDragger != null) {
+            mDragger.setAccessible(true);
+        }
+        ViewDragHelper draggerObj = null;
+        try {
+            if (mDragger != null) {
+                draggerObj = (ViewDragHelper) mDragger
+                        .get(mDrawerLayout);
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        Field mEdgeSize = null;
+        try {
+            if (draggerObj != null) {
+                mEdgeSize = draggerObj.getClass().getDeclaredField(
+                        "mEdgeSize");
+            }
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        if (mEdgeSize != null) {
+            mEdgeSize.setAccessible(true);
+        }
+        int edge = 40;
+        try {
+            if (mEdgeSize != null) {
+                edge = mEdgeSize.getInt(draggerObj);
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            if (mEdgeSize != null) {
+                mEdgeSize.setInt(draggerObj, edge * 5); //optimal value as for me, you may set any constant in dp
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        menuBtn.setOnClickListener(view13 -> {
+            if (!mDrawerLayout.isDrawerOpen(mDrawerLayout.getId()))
+                mDrawerLayout.openDrawer(navigationView);
+        });
+        api.checkInternet(() -> {
+            Call<ArrayList<Menues>> call = api.getMenues();
+            call.enqueue(new Callback<ArrayList<Menues>>() {
+                @Override
+                public void onResponse(@NonNull Call<ArrayList<Menues>> call, @NonNull Response<ArrayList<Menues>> response) {
+                    if (response.isSuccessful()) {
+
+                        listDataHeader = new ArrayList<>();
+                        listDataChild = new HashMap<>();
+                        menues = response.body();
+                        int size = 0;
+                        if (menues != null) {
+                            size = menues.size();
+                        }
+
+                        for (int i = 0; i < size; i++) {
+                            menu = menues.get(i);
+                            if (menu.getSubmenu().size() > 0) {
+                                ExpandedMenuModel item1 = new ExpandedMenuModel();
+                                item1.setIconImgText(menu.getIcon());
+                                item1.setUrl(menu.getUrl());
+                                item1.setIconName(menu.getLabel());
+                                listDataHeader.add(item1);
+                                List<ExpandedMenuModel> expandedMenuModels1 = new ArrayList<>();
+                                for (int e = 0; e < menu.getSubmenu().size(); e++) {
+                                    String tl = menu.getSubmenu().get(e).getUrl();
+                                    ExpandedMenuModel subMenuItem = new ExpandedMenuModel();
+                                    String b = (menu.getSubmenu().get(e).getIcon());
+                                    String c = new String(Character.toChars(Integer.parseInt(
+                                            b, 16)));
+
+                                    subMenuItem.setIconImgText(c);
+                                    subMenuItem.setUrl(tl);
+                                    subMenuItem.setIconName(menu.getSubmenu().get(e).getLabel());
+                                    expandedMenuModels1.add(subMenuItem);
+                                }
+                                listDataChild.put(listDataHeader.get(i), expandedMenuModels1);
+                            } else {
+                                ExpandedMenuModel item1 = new ExpandedMenuModel();
+                                item1.setIconImgText(menu.getIcon());
+                                item1.setIconName(menu.getLabel());
+                                item1.setUrl(menu.getUrl());
+                                listDataHeader.add(item1);
+                                listDataChild.put(listDataHeader.get(i), new ArrayList<>());
+
+                            }
+
+                        }
+                        mMenuAdapter = new ExpandableListAdapter(SecondActivity.this, listDataHeader, listDataChild, expandableList);
+                        expandableList.setAdapter(mMenuAdapter);
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ArrayList<Menues>> call, @NonNull Throwable t) {
+
+                }
+            });
+        });
 
         CustomViewTarget<RelativeLayout, Drawable> target = new CustomViewTarget<RelativeLayout, Drawable>(root) {
             @Override
@@ -138,19 +285,25 @@ public class SecondActivity extends AppCompatActivity {
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
                         .override(Target.SIZE_ORIGINAL))
                 .into(target);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendForm();
-            }
-        });
+        Drawable background = button.getBackground();
+        if (background instanceof ShapeDrawable) {
+            ((ShapeDrawable)background).getPaint().setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+        } else if (background instanceof GradientDrawable) {
+            ((GradientDrawable)background).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+        } else if (background instanceof ColorDrawable) {
+            ((ColorDrawable)background).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+        }
+        button.setOnClickListener(v -> sendForm());
 
-        attachFileBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                uploadFileClicked();
-            }
-        });
+        Drawable backgroundAttach = attachFileBtn.getBackground();
+        if (background instanceof ShapeDrawable) {
+            ((ShapeDrawable)backgroundAttach).getPaint().setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+        } else if (background instanceof GradientDrawable) {
+            ((GradientDrawable)backgroundAttach).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+        } else if (background instanceof ColorDrawable) {
+            ((ColorDrawable)backgroundAttach).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+        }
+        attachFileBtn.setOnClickListener(v -> uploadFileClicked());
 
         final Intent intent = getIntent();
         String url = intent.getStringExtra("url");
@@ -164,8 +317,7 @@ public class SecondActivity extends AppCompatActivity {
                 convertPixelsToDp(20, SecondActivity.this),
                 convertPixelsToDp(150, SecondActivity.this),
                 convertPixelsToDp(150, SecondActivity.this));
-        api = new RestApi(this);
-        list = new ArrayList<>();
+
         getForms(a, b);
 
 
@@ -173,35 +325,32 @@ public class SecondActivity extends AppCompatActivity {
 
 
     private void getForms(int boardId, int cardId) {
-        api.checkInternet(new Runnable() {
-            @Override
-            public void run() {
-                Call<ConfigFormsList> call = api.getForms(boardId, cardId);
-                call.enqueue(new Callback<ConfigFormsList>() {
-                    @Override
-                    public void onResponse(Call<ConfigFormsList> call, Response<ConfigFormsList> response) {
-                        if (response.isSuccessful()) {
-                            ConfigFormsList forms = new ConfigFormsList();
-                            ArrayList<ConfigForms> FORM = new ArrayList<>();
-                            if (response.body() != null) {
-                                forms = response.body();
-                                FORM = forms.getForms();
-                                if (FORM != null){
-                                    for (int i = 0; i < FORM.size(); i++) {
-                                    generateField2(FORM.get(i).getName(), FORM.get(i).getType(), FORM.get(i).getListItem(), FORM.get(i), i, FORM.size());
-                                }}
-
-                            }
+        api.checkInternet(() -> {
+            Call<ConfigFormsList> call = api.getForms(boardId, cardId);
+            call.enqueue(new Callback<ConfigFormsList>() {
+                @Override
+                public void onResponse(@NonNull Call<ConfigFormsList> call, @NonNull Response<ConfigFormsList> response) {
+                    if (response.isSuccessful()) {
+                        ConfigFormsList forms = new ConfigFormsList();
+                        ArrayList<ConfigForms> FORM = new ArrayList<>();
+                        if (response.body() != null) {
+                            forms = response.body();
+                            FORM = forms.getForms();
+                            if (FORM != null){
+                                for (int i = 0; i < FORM.size(); i++) {
+                                generateField2(FORM.get(i).getType(), FORM.get(i).getListItem(), FORM.get(i), i, FORM.size());
+                            }}
 
                         }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ConfigFormsList> call, Throwable t) {
 
                     }
-                });
-            }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ConfigFormsList> call, Throwable t) {
+
+                }
+            });
         });
 
 
@@ -219,7 +368,7 @@ public class SecondActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == 1 && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            filePath = data.getData();
+            Uri filePath = data.getData();
             String path = filePath.getPath();
             File file = new File(path);
 
@@ -252,7 +401,7 @@ public class SecondActivity extends AppCompatActivity {
                 case "DROPDOWN":
                     Spinner spinner = (Spinner) editTexts.get(i);
                     DropdownItem selectedItem = (DropdownItem) spinner.getSelectedItem();
-                    selectedItemId = selectedItem.getId();
+                    int selectedItemId = selectedItem.getId();
                     sendList.get(i).setDefaultValue(String.valueOf(selectedItemId));
                     break;
                 case "MULTIDROPDOWN":
@@ -286,7 +435,7 @@ public class SecondActivity extends AppCompatActivity {
             Call<ResponseBody> send = api.sendForms(String.valueOf(userId), sendForm);
             send.enqueue(new Callback<ResponseBody>() {
                 @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
 
                     Toast.makeText(SecondActivity.this, "Успешна апликација.", Toast.LENGTH_LONG).show();
                     finish();
@@ -294,7 +443,7 @@ public class SecondActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                     Toast.makeText(SecondActivity.this, "Неуспешна апликација.", Toast.LENGTH_LONG).show();
                     finish();
                 }
@@ -307,12 +456,11 @@ public class SecondActivity extends AppCompatActivity {
     public static int convertPixelsToDp(int px, Context context) {
         Resources resources = context.getResources();
         DisplayMetrics metrics = resources.getDisplayMetrics();
-        int dp = px / (metrics.densityDpi / 160);
-        return dp;
+        return px / (metrics.densityDpi / 160);
     }
 
 
-    public void generateField2(String fieldName, int fieldType, ArrayList<DropdownItem> listItems, ConfigForms forms, int i, int size) {
+    public void generateField2(int fieldType, ArrayList<DropdownItem> listItems, ConfigForms forms, int i, int size) {
 
 
         switch (fieldType) {
@@ -393,7 +541,7 @@ public class SecondActivity extends AppCompatActivity {
 //            DROPDOWN
             case 4:
                 newForm = new ConfigForms();
-                array = new ArrayList<DropdownItem>();
+                ArrayList<DropdownItem> array = new ArrayList<>();
                 for (int j = 0; j < listItems.size(); j++) {
                     DropdownItem dropdownItem = new DropdownItem();
                     dropdownItem.setName(listItems.get(j).getName());
@@ -408,13 +556,8 @@ public class SecondActivity extends AppCompatActivity {
 
                 RelativeLayout holder = new RelativeLayout(this);
                 holder.setLayoutParams(p);
-                TextView description = new TextView(this);
-                description.setText("CHOOSE WISELY BITCH: ");
-                description.setTypeface(tf, Typeface.BOLD);
-                description.setId(View.generateViewId());
-                holder.addView(description);
                 Spinner spinner = new Spinner(this);
-                ArrayAdapter<DropdownItem> spinnerArrayAdapter = new ArrayAdapter<DropdownItem>(this,
+                ArrayAdapter<DropdownItem> spinnerArrayAdapter = new ArrayAdapter<>(this,
                         android.R.layout.simple_spinner_item, array);
                 spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setBackground(getDrawable(R.drawable.rec));
@@ -422,7 +565,6 @@ public class SecondActivity extends AppCompatActivity {
                 spinner.setTag("DROPDOWN");
                 holder.addView(spinner);
                 paramsForText.setMargins(0, 4, 0, 0);
-                paramsForText.addRule(RelativeLayout.BELOW, description.getId());
                 spinner.setLayoutParams(paramsForText);
                 editTexts.add(spinner);
                 newForm.setType(forms.getType());
@@ -442,7 +584,7 @@ public class SecondActivity extends AppCompatActivity {
                 multiSpinner.setTextSize(18);
                 multiSpinner.setPadding((int) convertDpToPixel(10, this),
                         (int) convertDpToPixel(4, this), 0, 0);
-                arrayAdapter = new ArrayAdapter<DropdownItem>(this,
+                arrayAdapter = new ArrayAdapter<>(this,
                         android.R.layout.simple_spinner_item);
                 for (int j = 0; j < listItems.size(); j++) {
                     DropdownItem dropdownItem = new DropdownItem();
@@ -454,7 +596,7 @@ public class SecondActivity extends AppCompatActivity {
                 multiSpinner.setAdapter(arrayAdapter, true, onSelectedListener);
                 boolean[] selectedItems = new boolean[arrayAdapter.getCount()];
                 selectedItems[0] = true;
-                defaultSelectedMultiSpinner = arrayAdapter.getItem(0).getId();
+//                defaultSelectedMultiSpinner = arrayAdapter.getItem(0).getId();
                 multiSpinner.setSelected(selectedItems);
                 multiSpinner.setDefaultText("CHOOSE WISELY");
                 multiSpinner.setTag("MULTIDROPDOWN");
@@ -541,8 +683,7 @@ public class SecondActivity extends AppCompatActivity {
     public static float convertDpToPixel(float dp, Context context) {
         Resources resources = context.getResources();
         DisplayMetrics metrics = resources.getDisplayMetrics();
-        float px = dp * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
-        return px;
+        return dp * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
     }
 
 

@@ -1,29 +1,44 @@
 package com.george.board;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.ViewDragHelper;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ExpandableListView;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.george.board.api.RestApi;
 import com.george.board.appAuth.AuthStateManager;
 import com.george.board.appAuth.Configuration;
+import com.george.board.helper.ExpandableListAdapter;
 import com.george.board.helper.MyAccountAdapter;
 import com.george.board.helper.PreferencesManager;
+import com.george.board.model.ExpandedMenuModel;
+import com.george.board.model.Menues;
 import com.george.board.model.MyAccountActivity;
 import com.george.board.model.MyAccountActivityDetails;
 
 import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthorizationService;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.HashMap;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -32,30 +47,172 @@ import retrofit2.Response;
 
 public class MyActivity_activity extends AppCompatActivity {
 
-   private RestApi api;
-
     int companyId;
     int userId;
     private long expiry;
     private AuthorizationService mAuthService;
     private AuthStateManager mStateManager;
-    private ExecutorService mExecutor;
-    private Configuration mConfiguration;
     private static String ACCESS_TOKEN = "";
-    private Window window;
+    private Menues menu;
+    private ArrayList<Menues> menues;
+    List<ExpandedMenuModel> listDataHeader;
+    HashMap<ExpandedMenuModel, List<ExpandedMenuModel>> listDataChild;
+    private ExpandableListAdapter mMenuAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        window = getWindow();
+        Window window = getWindow();
+
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(Color.parseColor(PreferencesManager.getAccentColor(this)));
         setContentView(R.layout.activity_my_activity);
 
-        api=new RestApi(MyActivity_activity.this);
+        NavigationView navigationView = findViewById(R.id.nav_view2);
+        View view = navigationView.getHeaderView(0);
+        TextView navigationDraweAccentTitle = view.findViewById(R.id.drawerAccent);
+        DrawerLayout mDrawerLayout = findViewById(R.id.drawer_layout);
+        View view2 = findViewById(R.id.top_vire);
+        ImageView menuBtn = view2.findViewById(R.id.menu_btn);
+        ExpandableListView expandableList = findViewById(R.id.navigationmenu);
+        expandableList.setGroupIndicator(null);
+        String color = PreferencesManager.getPrimaryColor(this);
+        navigationDraweAccentTitle.setBackgroundColor(Color.parseColor(color));
+        RestApi api = new RestApi(MyActivity_activity.this);
+        expandableList.setOnChildClickListener((expandableListView, view1, i, i1, l) -> {
+            android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
+            ExpandedMenuModel item = (ExpandedMenuModel) (eListAdapter.getChild(i, i1));
+            String url = item.getUrl();
+            startActivity(new Intent(MyActivity_activity.this, SecondActivity.class).putExtra("url", url));
+            return false;
+        });
+        expandableList.setOnGroupClickListener((expandableListView, view12, i, l) -> {
+            android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
+            ExpandedMenuModel item = (ExpandedMenuModel) eListAdapter.getGroup(i);
+            if (eListAdapter.getChildrenCount(i) == 0){
+                String url = item.getUrl();
+                startActivity(new Intent(MyActivity_activity.this, SecondActivity.class).putExtra("url", url));
+            }
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view_profile);
+
+            return false;
+        });
+
+        Field mDragger = null;//mRightDragger for right obviously
+        try {
+            mDragger = mDrawerLayout.getClass().getDeclaredField(
+                    "mLeftDragger");
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        if (mDragger != null) {
+            mDragger.setAccessible(true);
+        }
+        ViewDragHelper draggerObj = null;
+        try {
+            if (mDragger != null) {
+                draggerObj = (ViewDragHelper) mDragger
+                        .get(mDrawerLayout);
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        Field mEdgeSize = null;
+        try {
+            if (draggerObj != null) {
+                mEdgeSize = draggerObj.getClass().getDeclaredField(
+                        "mEdgeSize");
+            }
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        if (mEdgeSize != null) {
+            mEdgeSize.setAccessible(true);
+        }
+        int edge = 40;
+        try {
+            if (mEdgeSize != null) {
+                edge = mEdgeSize.getInt(draggerObj);
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            if (mEdgeSize != null) {
+                mEdgeSize.setInt(draggerObj, edge * 5); //optimal value as for me, you may set any constant in dp
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        menuBtn.setOnClickListener(view13 -> {
+            if (!mDrawerLayout.isDrawerOpen(mDrawerLayout.getId()))
+                mDrawerLayout.openDrawer(navigationView);
+        });
+        api.checkInternet(() -> {
+            Call<ArrayList<Menues>> call = api.getMenues();
+            call.enqueue(new Callback<ArrayList<Menues>>() {
+                @Override
+                public void onResponse(@NonNull Call<ArrayList<Menues>> call, @NonNull Response<ArrayList<Menues>> response) {
+                    if (response.isSuccessful()) {
+
+                        listDataHeader = new ArrayList<>();
+                        listDataChild = new HashMap<>();
+                        menues = response.body();
+                        int size = 0;
+                        if (menues != null) {
+                            size = menues.size();
+                        }
+
+                        for (int i = 0; i < size; i++) {
+                            menu = menues.get(i);
+                            if (menu.getSubmenu().size() > 0) {
+                                ExpandedMenuModel item1 = new ExpandedMenuModel();
+                                item1.setIconImgText(menu.getIcon());
+                                item1.setUrl(menu.getUrl());
+                                item1.setIconName(menu.getLabel());
+                                listDataHeader.add(item1);
+                                List<ExpandedMenuModel> expandedMenuModels1 = new ArrayList<>();
+                                for (int e = 0; e < menu.getSubmenu().size(); e++) {
+                                    String tl = menu.getSubmenu().get(e).getUrl();
+                                    ExpandedMenuModel subMenuItem = new ExpandedMenuModel();
+                                    String b = (menu.getSubmenu().get(e).getIcon());
+                                    String c = new String(Character.toChars(Integer.parseInt(
+                                            b, 16)));
+
+                                    subMenuItem.setIconImgText(c);
+                                    subMenuItem.setUrl(tl);
+                                    subMenuItem.setIconName(menu.getSubmenu().get(e).getLabel());
+                                    expandedMenuModels1.add(subMenuItem);
+                                }
+                                listDataChild.put(listDataHeader.get(i), expandedMenuModels1);
+                            } else {
+                                ExpandedMenuModel item1 = new ExpandedMenuModel();
+                                item1.setIconImgText(menu.getIcon());
+                                item1.setIconName(menu.getLabel());
+                                item1.setUrl(menu.getUrl());
+                                listDataHeader.add(item1);
+                                listDataChild.put(listDataHeader.get(i), new ArrayList<>());
+
+                            }
+
+                        }
+                        mMenuAdapter = new ExpandableListAdapter(MyActivity_activity.this, listDataHeader, listDataChild, expandableList);
+                        expandableList.setAdapter(mMenuAdapter);
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ArrayList<Menues>> call, @NonNull Throwable t) {
+
+                }
+            });
+        });
+
+        RecyclerView recyclerView = findViewById(R.id.recycler_view_profile);
         LinearLayoutManager layoutManager = new LinearLayoutManager(MyActivity_activity.this);
 
         if (PreferencesManager.getTokenExpiry(MyActivity_activity.this) != 0) {
@@ -65,8 +222,6 @@ public class MyActivity_activity extends AppCompatActivity {
         if (expiry <= currentTime && expiry != 0) {
             Configuration config = Configuration.getInstance(MyActivity_activity.this);
             mStateManager = AuthStateManager.getInstance(MyActivity_activity.this);
-            mExecutor = Executors.newSingleThreadExecutor();
-            mConfiguration = Configuration.getInstance(MyActivity_activity.this);
             if (mAuthService == null) {
                 mAuthService = new AuthorizationService(MyActivity_activity.this, new AppAuthConfiguration.Builder()
                         .setConnectionBuilder(config.getConnectionBuilder())
@@ -93,31 +248,33 @@ public class MyActivity_activity extends AppCompatActivity {
         Call<ArrayList<MyAccountActivity>> call = api.getMyActivity(companyId,userId);
         call.enqueue(new Callback<ArrayList<MyAccountActivity>>() {
             @Override
-            public void onResponse(Call<ArrayList<MyAccountActivity>> call, Response<ArrayList<MyAccountActivity>> response) {
+            public void onResponse(@NonNull Call<ArrayList<MyAccountActivity>> call, @NonNull Response<ArrayList<MyAccountActivity>> response) {
                 ArrayList<MyAccountActivity> accountActivity = response.body();
                 ArrayList<MyAccountActivity> main = new ArrayList<>();
-                for (int i = 0; i < accountActivity.size();i++){
-                    ArrayList<MyAccountActivityDetails> detailsArrayList = new ArrayList<>();
+                if (accountActivity != null) {
+                    for (int i = 0; i < accountActivity.size();i++){
+                        ArrayList<MyAccountActivityDetails> detailsArrayList = new ArrayList<>();
 
 
 
-                    for(int e =0; e < accountActivity.get(i).getCards().size();e++){
-                        MyAccountActivityDetails details = new MyAccountActivityDetails();
-                        details.setStatus(accountActivity.get(i).getCards().get(e).getStatus());
-                        details.setName(accountActivity.get(i).getCards().get(e).getName());
-                        details.setIcon(accountActivity.get(i).getCards().get(e).getIcon());
-                        details.setDate(accountActivity.get(i).getCards().get(e).getDate());
-                        details.setId(accountActivity.get(i).getCards().get(e).getId());
-                        detailsArrayList.add(details);
+                        for(int e =0; e < accountActivity.get(i).getCards().size();e++){
+                            MyAccountActivityDetails details = new MyAccountActivityDetails();
+                            details.setStatus(accountActivity.get(i).getCards().get(e).getStatus());
+                            details.setName(accountActivity.get(i).getCards().get(e).getName());
+                            details.setIcon(accountActivity.get(i).getCards().get(e).getIcon());
+                            details.setDate(accountActivity.get(i).getCards().get(e).getDate());
+                            details.setId(accountActivity.get(i).getCards().get(e).getId());
+                            detailsArrayList.add(details);
+                        }
+                        MyAccountActivity myAct = new MyAccountActivity(accountActivity.get(i).getName(), detailsArrayList);
+                        myAct.setIcon(accountActivity.get(i).getIcon());
+                        myAct.setCards(detailsArrayList);
+                        myAct.setSize(accountActivity.get(i).getSize());
+                        myAct.setName(accountActivity.get(i).getName());
+
+                        main.add(myAct);
+
                     }
-                    MyAccountActivity myAct = new MyAccountActivity(accountActivity.get(i).getName(), detailsArrayList);
-                    myAct.setIcon(accountActivity.get(i).getIcon());
-                    myAct.setCards(detailsArrayList);
-                    myAct.setSize(accountActivity.get(i).getSize());
-                    myAct.setName(accountActivity.get(i).getName());
-
-                    main.add(myAct);
-
                 }
                 MyAccountAdapter adapter = new MyAccountAdapter(MyActivity_activity.this, main);
                 recyclerView.setLayoutManager(layoutManager);
@@ -126,7 +283,7 @@ public class MyActivity_activity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<ArrayList<MyAccountActivity>> call, Throwable t) {
+            public void onFailure(@NonNull Call<ArrayList<MyAccountActivity>> call, @NonNull Throwable t) {
                 Toast.makeText(MyActivity_activity.this, "Something went wrong. Please try again later.", Toast.LENGTH_LONG).show();
             }
         });
@@ -157,5 +314,14 @@ public class MyActivity_activity extends AppCompatActivity {
 //
 //        //instantiate your adapter with the list of genres
 
+    }
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 }
