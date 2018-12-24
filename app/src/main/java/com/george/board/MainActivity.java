@@ -45,7 +45,6 @@ import com.george.board.appAuth.AuthStateManager;
 import com.george.board.appAuth.Configuration;
 import com.george.board.appAuth.GlideApp;
 import com.george.board.helper.ExpandableListAdapter;
-import com.george.board.helper.OnExpandableListElementClick;
 import com.george.board.helper.PreferencesManager;
 import com.george.board.model.BoardCard;
 import com.george.board.model.ExpandedMenuModel;
@@ -83,7 +82,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements OnExpandableListElementClick {
+public class MainActivity extends AppCompatActivity {
 
     private RestApi api;
     private int subItem;
@@ -185,40 +184,29 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         navigationDraweAccentTitle = view.findViewById(R.id.drawerAccent);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         expandableList.setGroupIndicator(null);
-        centerImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, MyActivity_activity.class));
-            }
-        });
+        centerImage.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, MyActivity_activity.class)));
         ta = ResourcesCompat.getFont(this, R.font.bankicon);
         tf = ResourcesCompat.getFont(this, R.font.fontawesome_webfont);
         params = new RelativeLayout.LayoutParams(
                 210, 210);
 
-        expandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-            @Override
-            public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
-                android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
-                ExpandedMenuModel item = (ExpandedMenuModel) (eListAdapter.getChild(i, i1));
+        expandableList.setOnChildClickListener((expandableListView, view1, i, i1, l) -> {
+            android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
+            ExpandedMenuModel item = (ExpandedMenuModel) (eListAdapter.getChild(i, i1));
+            String url = item.getUrl();
+            startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url));
+            return false;
+        });
+        expandableList.setOnGroupClickListener((expandableListView, view12, i, l) -> {
+            android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
+            ExpandedMenuModel item = (ExpandedMenuModel) eListAdapter.getGroup(i);
+            if (eListAdapter.getChildrenCount(i) == 0){
                 String url = item.getUrl();
                 startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url));
-                return false;
             }
-        });
-        expandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-            @Override
-            public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-                android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
-                ExpandedMenuModel item = (ExpandedMenuModel) eListAdapter.getGroup(i);
-                if (eListAdapter.getChildrenCount(i) == 0){
-                    String url = item.getUrl();
-                    startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url));
-                }
 
-                //Log.d("DEBUG", "heading clicked");
-                return false;
-            }
+
+            return false;
         });
 
         Field mDragger = null;//mRightDragger for right obviously
@@ -501,22 +489,6 @@ public class MainActivity extends AppCompatActivity implements OnExpandableListE
         DisplayMetrics metrics = resources.getDisplayMetrics();
         float px = dp * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
         return px;
-    }
-
-    /**
-     * This method converts device specific pixels to density independent pixels.
-     *
-     * @param px      A value in px (pixels) unit. Which we need to convert into db
-     * @param context Context to get resources and device specific display metrics
-     * @return A float value to represent dp equivalent to px value
-     */
-    public static float convertPixelsToDp(float px, Context context) {
-        return px / ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
-    }
-
-    @Override
-    public void onExpandableListElementClick(ExpandedMenuModel model, int pos) {
-
     }
 
     //APP AUTH IMPLEMENTATION
