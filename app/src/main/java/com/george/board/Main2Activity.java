@@ -23,10 +23,12 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomViewTarget;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.george.board.api.RestApi;
+import com.george.board.appAuth.GlideApp;
 import com.george.board.helper.PreferencesManager;
 import com.george.board.model.CreditStatus;
 
@@ -77,26 +79,28 @@ public class Main2Activity extends AppCompatActivity {
             cardId = intent.getIntExtra("cardId", 0);
         } else cardId = 0;
         root = findViewById(R.id.background_main2activity);
-        Glide.with(Main2Activity.this)
+
+        CustomViewTarget<ConstraintLayout, Drawable> target = new CustomViewTarget<ConstraintLayout, Drawable>(root) {
+            @Override
+            protected void onResourceCleared(@Nullable Drawable placeholder) {
+
+            }
+
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                root.setBackground(errorDrawable);
+            }
+
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                root.setBackground(resource);
+            }
+        };
+        GlideApp.with(Main2Activity.this)
                 .load(PreferencesManager.getUserBackground(Main2Activity.this))
-                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).format(DecodeFormat.PREFER_ARGB_8888)
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
                         .override(Target.SIZE_ORIGINAL))
-                .into(new SimpleTarget<Drawable>() {
-
-                    @Override
-                    public void onLoadStarted(@Nullable Drawable resource) {
-                        root.setBackground(resource);
-                    }
-
-                    @Override
-                    public void onResourceReady(@NonNull Drawable resource, Transition<? super Drawable> transition) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                            root.setBackground(resource);
-                            Drawable cardViewBackground = root.getBackground();
-                            cardViewBackground.setColorFilter(0x5F000000, PorterDuff.Mode.SRC_ATOP);
-                        }
-                    }
-                });
+                .into(target);
 
 
         //VIEW FORMS

@@ -37,10 +37,12 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomViewTarget;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.george.board.api.RestApi;
+import com.george.board.appAuth.GlideApp;
 import com.george.board.helper.PreferencesManager;
 import com.george.board.model.BoardCardList;
 import com.george.board.model.ConfigForms;
@@ -112,26 +114,30 @@ public class SecondActivity extends AppCompatActivity {
         userName = PreferencesManager.getUserName(this);
         userLastname = PreferencesManager.getUserLastname(this);
         tf = ResourcesCompat.getFont(this, R.font.raleway_regular);
-        Glide.with(SecondActivity.this)
+
+        CustomViewTarget<RelativeLayout, Drawable> target = new CustomViewTarget<RelativeLayout, Drawable>(root) {
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                root.setBackground(errorDrawable);
+            }
+
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                root.setBackground(resource);
+            }
+
+            @Override
+            protected void onResourceCleared(@Nullable Drawable placeholder) {
+
+            }
+        } ;
+
+
+        GlideApp.with(SecondActivity.this)
                 .load(PreferencesManager.getUserBackground(SecondActivity.this))
-                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).format(DecodeFormat.PREFER_ARGB_8888)
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
                         .override(Target.SIZE_ORIGINAL))
-                .into(new SimpleTarget<Drawable>() {
-
-                    @Override
-                    public void onLoadStarted(@Nullable Drawable resource) {
-                        root.setBackground(resource);
-                    }
-
-                    @Override
-                    public void onResourceReady(@NonNull Drawable resource, Transition<? super Drawable> transition) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                            root.setBackground(resource);
-                            Drawable cardViewBackground = root.getBackground();
-                            cardViewBackground.setColorFilter(0x5F000000, PorterDuff.Mode.SRC_ATOP);
-                        }
-                    }
-                });
+                .into(target);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -180,9 +186,11 @@ public class SecondActivity extends AppCompatActivity {
                             if (response.body() != null) {
                                 forms = response.body();
                                 FORM = forms.getForms();
-                                for (int i = 0; i < FORM.size(); i++) {
+                                if (FORM != null){
+                                    for (int i = 0; i < FORM.size(); i++) {
                                     generateField2(FORM.get(i).getName(), FORM.get(i).getType(), FORM.get(i).getListItem(), FORM.get(i), i, FORM.size());
-                                }
+                                }}
+
                             }
 
                         }

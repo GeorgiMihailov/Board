@@ -8,10 +8,12 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
 
+
     <FrameLayout
         android:id="@+id/viewholder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
 
         <include
             android:id="@+id/root"

@@ -1,5 +1,6 @@
 package com.george.board.helper;
 
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v4.content.res.ResourcesCompat;
 import android.view.View;
@@ -29,6 +30,7 @@ public class MyAccountActivityDetailsViewHolder extends ChildViewHolder {
 
     public MyAccountActivityDetailsViewHolder(View itemView) {
         super(itemView);
+
         icon = itemView.findViewById(R.id.icon);
         type =itemView.findViewById(R.id.type);
         date = itemView.findViewById(R.id.date);
@@ -51,7 +53,11 @@ public class MyAccountActivityDetailsViewHolder extends ChildViewHolder {
 
 
 //        id = ((MyAccountActivityDetails) artist.get(pos)).getId();
-        type.setText(((MyAccountActivityDetails) artist.get(pos)).getName());
+        if (((MyAccountActivityDetails) artist.get(pos)).getName().length() > 23){
+           String text = ((MyAccountActivityDetails) artist.get(pos)).getName().substring(0,20) + "...";
+            type.setText(text);
+        }else  type.setText(((MyAccountActivityDetails) artist.get(pos)).getName());
+
         date.setText(((MyAccountActivityDetails) artist.get(pos)).getDate());
         status.setText(((MyAccountActivityDetails) artist.get(pos)).getStatus());
     }

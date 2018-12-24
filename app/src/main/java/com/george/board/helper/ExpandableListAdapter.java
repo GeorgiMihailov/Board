@@ -2,7 +2,10 @@ package com.george.board.helper;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Typeface;
+import android.support.v4.content.res.ResourcesCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,8 +23,10 @@ import java.util.List;
 import java.util.Objects;
 
 public class ExpandableListAdapter extends BaseExpandableListAdapter {
+    private final Typeface ta;
+    private final Typeface tf;
     private Context mContext;
-//    public OnExpandableListElementClick onExpandableListElementClick;
+    //    public OnExpandableListElementClick onExpandableListElementClick;
     private List<ExpandedMenuModel> mListDataHeader; // header titles
 
     // child data in format of header title, child title
@@ -31,12 +36,16 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         this.mContext = context;
         this.mListDataHeader = listDataHeader;
         this.mListDataChild = listChildData;
+        ta = ResourcesCompat.getFont(context, R.font.bankicon);
+        tf = ResourcesCompat.getFont(context, R.font.fontawesome_webfont);
     }
 //    public ExpandableListAdapter(Context context, List<ExpandedMenuModel> listDataHeader, HashMap<ExpandedMenuModel, List<ExpandedMenuModel>> listChildData, ExpandableListView mView, OnExpandableListElementClick onExpandableListElementClick) {
 //        this.mContext = context;
 //        this.mListDataHeader = listDataHeader;
 //        this.mListDataChild = listChildData;
 //        this.onExpandableListElementClick = onExpandableListElementClick;
+//        ta = ResourcesCompat.getFont(context, R.font.bankicon);
+//        tf = ResourcesCompat.getFont(context, R.font.fontawesome_webfont);
 //    }
 
     @Override
@@ -100,20 +109,34 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                 .findViewById(R.id.submenu);
         TextView headerIcon = convertView.findViewById(R.id.iconimage);
 
-        if (childCount==0){
+        if (childCount == 0) {
             dropdownArrow.setVisibility(View.GONE);
-        }
-        else  if (isExpanded)
-            dropdownArrow.setVisibility(View.GONE);
+        } else if (isExpanded)
+            dropdownArrow.setVisibility(View.INVISIBLE);
         else if (!isExpanded)
             dropdownArrow.setVisibility(View.VISIBLE);
-        lblListHeader.setTypeface(null, Typeface.BOLD);
-        if (!headerTitle.getIconImgText().isEmpty()){
+
+        if (!headerTitle.getIconImgText().isEmpty()) {
             String b = headerTitle.getIconImgText();
             String c = new String(Character.toChars(Integer.parseInt(
                     b, 16)));
-            lblListHeader.setText(headerTitle.getIconName());
-            headerIcon.setText(c);
+            if (headerTitle.getIconImgText().startsWith("e")) {
+                headerIcon.setTypeface(ta);
+                headerIcon.setText(c);
+                headerIcon.setTextSize(40);
+                headerIcon.setPadding((int) convertDpToPixel(20,convertView.getContext()), 0, 0, 0);
+                lblListHeader.setPadding((int) convertDpToPixel(20,convertView.getContext()), 0, 0, 0);
+                lblListHeader.setText(headerTitle.getIconName());
+            } else if (headerTitle.getIconImgText().startsWith("f")){
+                headerIcon.setTypeface(tf);
+                headerIcon.setTextSize(22);
+                headerIcon.setPadding((int) convertDpToPixel(30,convertView.getContext()), 0, 0, 0);
+                headerIcon.setText(c);
+                lblListHeader.setPadding((int) convertDpToPixel(30,convertView.getContext()), 0, 0, 0);
+                lblListHeader.setText(headerTitle.getIconName());
+            }
+
+
         }
 
 
@@ -133,7 +156,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
 
         TextView txtListChild = convertView
-                .findViewById(R.id.submenu);
+                .findViewById(R.id.submenu1);
         TextView txtListChildIcon = convertView
                 .findViewById(R.id.childIconImage);
 //        convertView.setOnClickListener(new View.OnClickListener() {
@@ -143,9 +166,14 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 //            }
 //        });
 
-
+        if (subMenuModel.getIconImgText().startsWith("e")) {
+            txtListChildIcon.setTypeface(tf);
+            txtListChildIcon.setText(subMenuModel.getIconImgText());
+        } else {
+            txtListChildIcon.setTypeface(ta);
+            txtListChildIcon.setText(subMenuModel.getIconImgText());
+        }
         txtListChild.setText(subMenuModel.getIconName());
-        txtListChildIcon.setText(subMenuModel.getIconImgText());
 
         return convertView;
     }
@@ -153,5 +181,11 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) {
         return true;
+    }
+    public static float convertDpToPixel(float dp, Context context) {
+        Resources resources = context.getResources();
+        DisplayMetrics metrics = resources.getDisplayMetrics();
+        float px = dp * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+        return px;
     }
 }

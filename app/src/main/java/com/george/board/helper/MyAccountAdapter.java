@@ -2,9 +2,16 @@ package com.george.board.helper;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import com.george.board.Main2Activity;
 import com.george.board.R;
@@ -27,6 +34,10 @@ public class MyAccountAdapter extends ExpandableRecyclerViewAdapter<MyAccountAct
     @Override
     public MyAccountActivityViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
         View view = inflater.inflate(R.layout.main_myactivity_window, parent, false);
+        Drawable shape = view.getBackground();
+            GradientDrawable shapeDrawable = (GradientDrawable) shape;
+            shapeDrawable.setColor(Color.parseColor(PreferencesManager.getPrimaryColor(view.getContext())));
+
         return new MyAccountActivityViewHolder(view);
     }
 
