@@ -20,9 +20,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.george.board.api.RestApi;
 import com.george.board.appAuth.AuthStateManager;
 import com.george.board.appAuth.Configuration;
+import com.george.board.appAuth.GlideApp;
 import com.george.board.helper.ExpandableListAdapter;
 import com.george.board.helper.MyAccountAdapter;
 import com.george.board.helper.PreferencesManager;
@@ -58,6 +61,8 @@ public class MyActivity_activity extends AppCompatActivity {
     List<ExpandedMenuModel> listDataHeader;
     HashMap<ExpandedMenuModel, List<ExpandedMenuModel>> listDataChild;
     private ExpandableListAdapter mMenuAdapter;
+    private ImageView navigationDrawerLogo;
+    private ImageView logoImg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +77,8 @@ public class MyActivity_activity extends AppCompatActivity {
         NavigationView navigationView = findViewById(R.id.nav_view2);
         View view = navigationView.getHeaderView(0);
         TextView navigationDraweAccentTitle = view.findViewById(R.id.drawerAccent);
+        navigationDrawerLogo = view.findViewById(R.id.navigation_view_logo);
+        logoImg = findViewById(R.id.logo_img);
         DrawerLayout mDrawerLayout = findViewById(R.id.drawer_layout);
         View view2 = findViewById(R.id.top_vire);
         ImageView menuBtn = view2.findViewById(R.id.menu_btn);
@@ -84,6 +91,8 @@ public class MyActivity_activity extends AppCompatActivity {
             android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
             ExpandedMenuModel item = (ExpandedMenuModel) (eListAdapter.getChild(i, i1));
             String url = item.getUrl();
+            mDrawerLayout.closeDrawers();
+            finish();
             startActivity(new Intent(MyActivity_activity.this, SecondActivity.class).putExtra("url", url));
             return false;
         });
@@ -92,12 +101,31 @@ public class MyActivity_activity extends AppCompatActivity {
             ExpandedMenuModel item = (ExpandedMenuModel) eListAdapter.getGroup(i);
             if (eListAdapter.getChildrenCount(i) == 0){
                 String url = item.getUrl();
-                startActivity(new Intent(MyActivity_activity.this, SecondActivity.class).putExtra("url", url));
+                if(item.getUrl().isEmpty()){
+                    mDrawerLayout.closeDrawers();
+                }
+                else {
+                    finish();
+                    startActivity(new Intent(MyActivity_activity.this, SecondActivity.class).putExtra("url", url));
+                }
+
+
             }
 
 
             return false;
         });
+
+        GlideApp.with(MyActivity_activity.this)
+                .load(PreferencesManager.getLogo(MyActivity_activity.this))
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                        .override(Target.SIZE_ORIGINAL))
+                .into(navigationDrawerLogo);
+        GlideApp.with(MyActivity_activity.this)
+                .load(PreferencesManager.getLogo(MyActivity_activity.this))
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                        .override(Target.SIZE_ORIGINAL))
+                .into(logoImg);
 
         Field mDragger = null;//mRightDragger for right obviously
         try {
@@ -200,6 +228,10 @@ public class MyActivity_activity extends AppCompatActivity {
                             }
 
                         }
+                        ExpandedMenuModel myProfile = new ExpandedMenuModel();
+                        myProfile.setIconName("My Profile");
+                        listDataHeader.add(myProfile);
+                        listDataChild.put(listDataHeader.get(listDataHeader.size()-1), new ArrayList<>());
                         mMenuAdapter = new ExpandableListAdapter(MyActivity_activity.this, listDataHeader, listDataChild, expandableList);
                         expandableList.setAdapter(mMenuAdapter);
                     }

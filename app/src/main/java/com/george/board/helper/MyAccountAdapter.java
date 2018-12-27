@@ -57,7 +57,7 @@ public class MyAccountAdapter extends ExpandableRecyclerViewAdapter<MyAccountAct
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(v.getContext(), Main2Activity.class);
-                intent.putExtra("cardId", artist.get(flatPosition).getId());
+                intent.putExtra("cardId", artist.get(flatPosition-1).getId());
                 v.getContext().startActivity(intent);
             }
         });

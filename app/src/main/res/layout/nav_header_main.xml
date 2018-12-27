@@ -12,13 +12,12 @@
 
     <ImageView
         android:layout_marginTop="8dp"
-        android:id="@+id/imageView"
+        android:id="@+id/navigation_view_logo"
         android:layout_width="300dp"
         android:layout_height="0dp"
         android:layout_weight="4"
         android:contentDescription="@string/nav_header_desc"
-        android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:src="@drawable/logo" />
+        android:paddingTop="@dimen/nav_header_vertical_spacing" />
 
     <TextView
         android:id="@+id/drawerAccent"

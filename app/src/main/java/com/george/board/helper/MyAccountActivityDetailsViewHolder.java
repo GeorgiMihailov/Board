@@ -26,6 +26,7 @@ public class MyAccountActivityDetailsViewHolder extends ChildViewHolder {
     private TextView type;
     private TextView date;
     private TextView status;
+    private TextView ticketId;
     private  int id;
 
     public MyAccountActivityDetailsViewHolder(View itemView) {
@@ -35,6 +36,7 @@ public class MyAccountActivityDetailsViewHolder extends ChildViewHolder {
         type =itemView.findViewById(R.id.type);
         date = itemView.findViewById(R.id.date);
         status = itemView.findViewById(R.id.status);
+        ticketId = itemView.findViewById(R.id.ticket_id);
     }
 
     public void onBind(ArrayList<MyAccountActivityDetails> artist, int pos) {
@@ -60,6 +62,7 @@ public class MyAccountActivityDetailsViewHolder extends ChildViewHolder {
 
         date.setText(((MyAccountActivityDetails) artist.get(pos)).getDate());
         status.setText(((MyAccountActivityDetails) artist.get(pos)).getStatus());
+        ticketId.setText(String.valueOf(((MyAccountActivityDetails) artist.get(pos)).getId()));
     }
 }
 

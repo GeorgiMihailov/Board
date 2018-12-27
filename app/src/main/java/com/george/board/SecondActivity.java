@@ -1,5 +1,7 @@
 package com.george.board;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -30,6 +32,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
@@ -37,6 +40,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.bumptech.glide.request.RequestOptions;
@@ -57,9 +61,12 @@ import com.thomashaertel.widget.MultiSpinner;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -70,6 +77,7 @@ public class SecondActivity extends AppCompatActivity {
     private LinearLayout constraintLayout;
     private RestApi api;
     private LinearLayout.LayoutParams p;
+    final Calendar myCalendar = Calendar.getInstance();
     Button button;
     ArrayList<ConfigForms> sendList;
     ConfigForms newForm;
@@ -96,6 +104,8 @@ public class SecondActivity extends AppCompatActivity {
     List<ExpandedMenuModel> listDataHeader;
     HashMap<ExpandedMenuModel, List<ExpandedMenuModel>> listDataChild;
     private ExpandableListAdapter mMenuAdapter;
+    private ImageView navigationDrawerLogo;
+    private ImageView logoImg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +132,8 @@ public class SecondActivity extends AppCompatActivity {
         NavigationView navigationView = findViewById(R.id.nav_view2);
         View view = navigationView.getHeaderView(0);
         TextView navigationDraweAccentTitle = view.findViewById(R.id.drawerAccent);
+        navigationDrawerLogo = view.findViewById(R.id.navigation_view_logo);
+        logoImg = findViewById(R.id.logo_img);
         DrawerLayout mDrawerLayout = findViewById(R.id.drawer_layout);
         View view2 = findViewById(R.id.custom_view);
         ImageView menuBtn = view2.findViewById(R.id.menu_btn);
@@ -134,16 +146,26 @@ public class SecondActivity extends AppCompatActivity {
             android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
             ExpandedMenuModel item = (ExpandedMenuModel) (eListAdapter.getChild(i, i1));
             String url = item.getUrl();
+            mDrawerLayout.closeDrawers();
+            finish();
             startActivity(new Intent(SecondActivity.this, SecondActivity.class).putExtra("url", url));
             return false;
         });
         expandableList.setOnGroupClickListener((expandableListView, view12, i, l) -> {
             android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
             ExpandedMenuModel item = (ExpandedMenuModel) eListAdapter.getGroup(i);
-            if (eListAdapter.getChildrenCount(i) == 0){
+            if (eListAdapter.getChildrenCount(i) == 0) {
                 String url = item.getUrl();
-                startActivity(new Intent(SecondActivity.this, SecondActivity.class).putExtra("url", url));
+                if(item.getUrl().isEmpty()){
+                    mDrawerLayout.closeDrawers();
+                    startActivity(new Intent(SecondActivity.this, MyActivity_activity.class));
+                }
+                else {
+                    finish();
+                    startActivity(new Intent(SecondActivity.this, SecondActivity.class).putExtra("url", url));
+                }
             }
+
 
 
             return false;
@@ -250,6 +272,10 @@ public class SecondActivity extends AppCompatActivity {
                             }
 
                         }
+                        ExpandedMenuModel myProfile = new ExpandedMenuModel();
+                        myProfile.setIconName("My Profile");
+                        listDataHeader.add(myProfile);
+                        listDataChild.put(listDataHeader.get(listDataHeader.size()-1), new ArrayList<>());
                         mMenuAdapter = new ExpandableListAdapter(SecondActivity.this, listDataHeader, listDataChild, expandableList);
                         expandableList.setAdapter(mMenuAdapter);
                     }
@@ -277,7 +303,7 @@ public class SecondActivity extends AppCompatActivity {
             protected void onResourceCleared(@Nullable Drawable placeholder) {
 
             }
-        } ;
+        };
 
 
         GlideApp.with(SecondActivity.this)
@@ -287,21 +313,31 @@ public class SecondActivity extends AppCompatActivity {
                 .into(target);
         Drawable background = button.getBackground();
         if (background instanceof ShapeDrawable) {
-            ((ShapeDrawable)background).getPaint().setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+            ((ShapeDrawable) background).getPaint().setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
         } else if (background instanceof GradientDrawable) {
-            ((GradientDrawable)background).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+            ((GradientDrawable) background).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
         } else if (background instanceof ColorDrawable) {
-            ((ColorDrawable)background).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+            ((ColorDrawable) background).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
         }
+        GlideApp.with(SecondActivity.this)
+                .load(PreferencesManager.getLogo(SecondActivity.this))
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                        .override(Target.SIZE_ORIGINAL))
+                .into(navigationDrawerLogo);
+        GlideApp.with(SecondActivity.this)
+                .load(PreferencesManager.getLogo(SecondActivity.this))
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                        .override(Target.SIZE_ORIGINAL))
+                .into(logoImg);
         button.setOnClickListener(v -> sendForm());
 
         Drawable backgroundAttach = attachFileBtn.getBackground();
         if (background instanceof ShapeDrawable) {
-            ((ShapeDrawable)backgroundAttach).getPaint().setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+            ((ShapeDrawable) backgroundAttach).getPaint().setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
         } else if (background instanceof GradientDrawable) {
-            ((GradientDrawable)backgroundAttach).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+            ((GradientDrawable) backgroundAttach).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
         } else if (background instanceof ColorDrawable) {
-            ((ColorDrawable)backgroundAttach).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
+            ((ColorDrawable) backgroundAttach).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
         }
         attachFileBtn.setOnClickListener(v -> uploadFileClicked());
 
@@ -313,10 +349,10 @@ public class SecondActivity extends AppCompatActivity {
         constraintLayout = findViewById(R.id.layout);
         holder = findViewById(R.id.holder_toolbar);
         p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        p.setMargins(convertPixelsToDp(150, SecondActivity.this),
-                convertPixelsToDp(20, SecondActivity.this),
-                convertPixelsToDp(150, SecondActivity.this),
-                convertPixelsToDp(150, SecondActivity.this));
+        p.setMargins((int) convertDpToPixel(6, SecondActivity.this),
+                (int) convertDpToPixel(6, SecondActivity.this),
+                (int) convertDpToPixel(6, SecondActivity.this),
+                (int) convertDpToPixel(6, SecondActivity.this));
 
         getForms(a, b);
 
@@ -336,10 +372,11 @@ public class SecondActivity extends AppCompatActivity {
                         if (response.body() != null) {
                             forms = response.body();
                             FORM = forms.getForms();
-                            if (FORM != null){
+                            if (FORM != null) {
                                 for (int i = 0; i < FORM.size(); i++) {
-                                generateField2(FORM.get(i).getType(), FORM.get(i).getListItem(), FORM.get(i), i, FORM.size());
-                            }}
+                                    generateField2(FORM.get(i).getType(), FORM.get(i).getListItem(), FORM.get(i), i, FORM.size());
+                                }
+                            }
 
                         }
 
@@ -412,12 +449,12 @@ public class SecondActivity extends AppCompatActivity {
 
 
                 case "DATE":
-                    EditText editTextDate = (EditText) editTexts.get(i);
+                    TextView editTextDate = (TextView) editTexts.get(i);
                     value = editTextDate.getText().toString();
                     sendList.get(i).setDefaultValue(value);
                     break;
                 case "TIME":
-                    EditText editTextTime = (EditText) editTexts.get(i);
+                    TextView editTextTime = (TextView) editTexts.get(i);
                     value = editTextTime.getText().toString();
                     sendList.get(i).setDefaultValue(value);
                     break;
@@ -436,9 +473,11 @@ public class SecondActivity extends AppCompatActivity {
             send.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                    if (response.isSuccessful()){
+                        Toast.makeText(SecondActivity.this, "Успешна апликација.", Toast.LENGTH_LONG).show();
+                        finish();
+                    }
 
-                    Toast.makeText(SecondActivity.this, "Успешна апликација.", Toast.LENGTH_LONG).show();
-                    finish();
 
                 }
 
@@ -468,13 +507,14 @@ public class SecondActivity extends AppCompatActivity {
             // TEXT
             case 1:
                 newForm = new ConfigForms();
+
                 EditText text = new EditText(SecondActivity.this);
                 text.setPadding(55, 20, 0, 0);
                 text.setHint(forms.getName());
                 text.setGravity(Gravity.START);
                 text.setBackground(getDrawable(R.drawable.rec));
                 text.setTag("TEXT");
-                text.setTextColor(getColor(R.color.colorAccent));
+                text.setTextColor(getResources().getColor(R.color.colorAccent));
                 text.setLayoutParams(p);
                 text.setId(i);
                 if (i == size - 1) {
@@ -524,7 +564,7 @@ public class SecondActivity extends AppCompatActivity {
                 inputNumber.setGravity(Gravity.START);
                 inputNumber.setBackground(getDrawable(R.drawable.rec));
                 inputNumber.setTag("NUMERIC");
-                inputNumber.setTextColor(getColor(R.color.colorAccent));
+                inputNumber.setTextColor(getResources().getColor(R.color.colorAccent));
                 inputNumber.setLayoutParams(p);
                 inputNumber.setId(i);
                 if (i == size) {
@@ -580,7 +620,7 @@ public class SecondActivity extends AppCompatActivity {
                 MultiSpinner multiSpinner = new MultiSpinner(this);
                 multiSpinner.setBackground(getDrawable(R.drawable.rec));
                 multiSpinner.setLayoutParams(p);
-                multiSpinner.setTextColor(getColor(R.color.colorAccent));
+                multiSpinner.setTextColor(getResources().getColor(R.color.colorAccent));
                 multiSpinner.setTextSize(18);
                 multiSpinner.setPadding((int) convertDpToPixel(10, this),
                         (int) convertDpToPixel(4, this), 0, 0);
@@ -594,10 +634,11 @@ public class SecondActivity extends AppCompatActivity {
                 }
 
                 multiSpinner.setAdapter(arrayAdapter, true, onSelectedListener);
-                boolean[] selectedItems = new boolean[arrayAdapter.getCount()];
-                selectedItems[0] = true;
-//                defaultSelectedMultiSpinner = arrayAdapter.getItem(0).getId();
-                multiSpinner.setSelected(selectedItems);
+                if (arrayAdapter.getCount() != 0) {
+                    boolean[] selectedItems = new boolean[arrayAdapter.getCount()];
+                    selectedItems[0] = true;
+                    multiSpinner.setSelected(selectedItems);
+                }
                 multiSpinner.setDefaultText("CHOOSE WISELY");
                 multiSpinner.setTag("MULTIDROPDOWN");
                 editTexts.add(multiSpinner);
@@ -609,7 +650,30 @@ public class SecondActivity extends AppCompatActivity {
             //DATE
             case 6:
                 newForm = new ConfigForms();
-                EditText inputDate = new EditText(this);
+
+
+                TextView inputDate = new TextView(this);
+
+                DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
+
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                          int dayOfMonth) {
+                        // TODO Auto-generated method stub
+                        myCalendar.set(Calendar.YEAR, year);
+                        myCalendar.set(Calendar.MONTH, monthOfYear);
+                        myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                        updateLabel(inputDate);
+                    }
+
+                };  inputDate.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    new DatePickerDialog(SecondActivity.this, date, myCalendar
+                            .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                            myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+                }
+            });
                 inputDate.setPadding(55, 20, 0, 0);
                 inputDate.setTextColor(Color.BLACK);
                 inputDate.setTextSize(16);
@@ -623,7 +687,7 @@ public class SecondActivity extends AppCompatActivity {
                     inputDate.setImeOptions(EditorInfo.IME_ACTION_DONE);
                 } else
                     inputDate.setImeOptions(EditorInfo.IME_ACTION_NEXT);
-                inputDate.setInputType(InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_DATE);
+//                inputDate.setInputType(InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_DATE);
                 editTexts.add(inputDate);
                 newForm.setType(forms.getType());
                 newForm.setId(forms.getId());
@@ -634,7 +698,28 @@ public class SecondActivity extends AppCompatActivity {
             //TIME
             case 7:
                 newForm = new ConfigForms();
-                EditText inputTime = new EditText(this);
+                TextView inputTime = new TextView(this);
+
+                inputTime.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Calendar mcurrentTime = Calendar.getInstance();
+                    int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+                    int minute = mcurrentTime.get(Calendar.MINUTE);
+                    TimePickerDialog mTimePicker;
+                    mTimePicker = new TimePickerDialog(SecondActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                        @Override
+                        public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                            inputTime.setText( selectedHour + ":" + selectedMinute);
+                        }
+                    }, hour, minute, true);//Yes 24 hour time
+                    mTimePicker.setTitle("Select Time");
+                    mTimePicker.show();
+
+
+                }
+            });
+
                 inputTime.setTextColor(Color.BLACK);
                 inputTime.setTextSize(16);
                 inputTime.setId(i);
@@ -648,7 +733,6 @@ public class SecondActivity extends AppCompatActivity {
                 inputTime.setPadding(55, 20, 0, 0);
                 inputTime.setHint(forms.getName());
                 inputTime.setBackground(getDrawable(R.drawable.rec));
-                inputTime.setInputType(InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_TIME);
                 editTexts.add(inputTime);
                 newForm.setType(forms.getType());
                 newForm.setId(forms.getId());
@@ -669,14 +753,13 @@ public class SecondActivity extends AppCompatActivity {
                 }
 
             }
-
             multi = builder.toString();
-            String multiSpinnerValues = multi.substring(0, multi.length() - 1);
-            newFormMulti.setDefaultValue(multiSpinnerValues);
-            sendList.add(newFormMulti);
+            if (!multi.isEmpty()) {
+                String multiSpinnerValues = multi.substring(0, multi.length() - 1);
+                newFormMulti.setDefaultValue(multiSpinnerValues);
+                sendList.add(newFormMulti);
+            }
 
-
-            // Do something here with the selected items
         }
     };
 
@@ -684,6 +767,13 @@ public class SecondActivity extends AppCompatActivity {
         Resources resources = context.getResources();
         DisplayMetrics metrics = resources.getDisplayMetrics();
         return dp * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+    }
+
+    private void updateLabel(TextView editText) {
+        String myFormat = "MM/dd/yy"; //In which you need put here
+        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
+
+        editText.setText(sdf.format(myCalendar.getTime()));
     }
 
 

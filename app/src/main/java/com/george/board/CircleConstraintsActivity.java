@@ -1,5 +1,6 @@
 package com.george.board;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -36,6 +37,7 @@ public class CircleConstraintsActivity extends AppCompatActivity implements MyRe
     RestApi api;
 
     ConstraintLayout root;
+    private int parentId;
 
 
     @Override
@@ -47,6 +49,8 @@ public class CircleConstraintsActivity extends AppCompatActivity implements MyRe
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+
+
 
         root = findViewById(R.id.background1);
         CustomViewTarget<ConstraintLayout, Drawable> target = new CustomViewTarget<ConstraintLayout, Drawable>(root) {
@@ -77,38 +81,48 @@ public class CircleConstraintsActivity extends AppCompatActivity implements MyRe
         recyclerView.setNestedScrollingEnabled(false);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         api = new RestApi(this);
+        Intent intent = getIntent();
+        if (intent.hasExtra("parentId")){
+            parentId = intent.getIntExtra("parentId",0);
+            api.checkInternet(() -> {
+                Call<ArrayList<Menues>> call = api.getMenues();
+                call.enqueue(new Callback<ArrayList<Menues>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<ArrayList<Menues>> call, @NonNull Response<ArrayList<Menues>> response) {
+                        if (response.isSuccessful()) {
+                            menues = response.body();
+                            assert menues != null;
+                            for (int i = 0; i <menues.size();i++){
+                                if (menues.get(i).getId() == parentId){
+                                    adapter = new MyRecyclerViewAdapter(CircleConstraintsActivity.this, menues.get(i).getSubmenu());
+                                    recyclerView.setAdapter(adapter);
+
+                                    adapter.setClickListener(CircleConstraintsActivity.this);
+                                }
+                            }
 
 
-        api.checkInternet(() -> {
-            Call<ArrayList<Menues>> call = api.getMenues();
-            call.enqueue(new Callback<ArrayList<Menues>>() {
-                @Override
-                public void onResponse(@NonNull Call<ArrayList<Menues>> call, @NonNull Response<ArrayList<Menues>> response) {
-                    if (response.isSuccessful()) {
-                        menues = response.body();
-                        assert menues != null;
-                        adapter = new MyRecyclerViewAdapter(CircleConstraintsActivity.this, menues.get(0).getSubmenu());
-                        recyclerView.setAdapter(adapter);
+                        }
 
-                        adapter.setClickListener(CircleConstraintsActivity.this);
                     }
 
-                }
+                    @Override
+                    public void onFailure(@NonNull Call<ArrayList<Menues>> call, @NonNull Throwable t) {
 
-                @Override
-                public void onFailure(@NonNull Call<ArrayList<Menues>> call, @NonNull Throwable t) {
-
-                }
+                    }
+                });
             });
-        });
+                    }
 
 
     }
 
 
     @Override
-    public void onItemClick(View view, int position) {
-        Toast.makeText(this, "You clicked " + adapter.getItem(position).getLabel() + " on row number " + position, Toast.LENGTH_SHORT).show();
+    public void onItemClick(View view, int position,Menues menue) {
+
+        String url = menue.getUrl();
+        startActivity(new Intent(CircleConstraintsActivity.this, SecondActivity.class).putExtra("url", url));
 
     }
 }

@@ -23,12 +23,14 @@ import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -96,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
     TextView add;
     TextView navigationDraweAccentTitle;
     ConstraintLayout rootView;
+    ImageView logoImg;
+    ImageView navigationDrawerLogo;
     ArrayList<BoardCard> boardCards;
     ExpandableListAdapter mMenuAdapter;
     ExpandableListView expandableList;
@@ -136,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     ImageView menuBtn;
     private Window window;
     private RelativeLayout pb;
+    private LinearLayout.LayoutParams paramsForIconAndTextHolder;
 
 
     @Override
@@ -168,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         constraintLayout = findViewById(R.id.circle_view_holder);
         rootView = findViewById(R.id.root);
+
         centerImage = findViewById(R.id.sun_image);
         pb = findViewById(R.id.progress_bar_holder);
         menuBtn = findViewById(R.id.menu_btn);
@@ -175,18 +181,23 @@ public class MainActivity extends AppCompatActivity {
         NavigationView navigationView = findViewById(R.id.nav_view);
         View view = navigationView.getHeaderView(0);
         navigationDraweAccentTitle = view.findViewById(R.id.drawerAccent);
+        logoImg = findViewById(R.id.logo_img);
+        navigationDrawerLogo = view.findViewById(R.id.navigation_view_logo);
+
         DrawerLayout mDrawerLayout = findViewById(R.id.drawer_layout);
         expandableList.setGroupIndicator(null);
         centerImage.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, MyActivity_activity.class)));
         ta = ResourcesCompat.getFont(this, R.font.bankicon);
         tf = ResourcesCompat.getFont(this, R.font.fontawesome_webfont);
         params = new RelativeLayout.LayoutParams(
-                210, 210);
-
+                (int)convertDpToPixel(65,this),   (int)convertDpToPixel(65,this));
+        paramsForIconAndTextHolder = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+        paramsForIconAndTextHolder.gravity = Gravity.CENTER_HORIZONTAL;
         expandableList.setOnChildClickListener((expandableListView, view1, i, i1, l) -> {
             android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
             ExpandedMenuModel item = (ExpandedMenuModel) (eListAdapter.getChild(i, i1));
             String url = item.getUrl();
+            mDrawerLayout.closeDrawers();
             startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url));
             return false;
         });
@@ -195,7 +206,12 @@ public class MainActivity extends AppCompatActivity {
             ExpandedMenuModel item = (ExpandedMenuModel) eListAdapter.getGroup(i);
             if (eListAdapter.getChildrenCount(i) == 0){
                 String url = item.getUrl();
-                startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url));
+                mDrawerLayout.closeDrawers();
+                if(item.getUrl().isEmpty()){
+                    mDrawerLayout.closeDrawers();
+                    startActivity(new Intent(MainActivity.this, MyActivity_activity.class));
+                }
+               else startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url));
             }
 
 
@@ -291,7 +307,6 @@ public class MainActivity extends AppCompatActivity {
                 listDataChild = new HashMap<>();
                 constraintSet.constrainWidth(R.id.sun_image, (int) convertDpToPixel(130, MainActivity.this));
                 constraintSet.constrainHeight(R.id.sun_image, (int) convertDpToPixel(130, MainActivity.this));
-
                 CustomViewTarget<ConstraintLayout, Drawable> target = new CustomViewTarget<ConstraintLayout, Drawable>(rootView) {
                     @Override
                     protected void onResourceCleared(@Nullable Drawable placeholder) {
@@ -308,6 +323,22 @@ public class MainActivity extends AppCompatActivity {
                         rootView.setBackground(resource);
                     }
                 };
+        CustomViewTarget<CircleImageView, Drawable> logo = new CustomViewTarget<CircleImageView, Drawable>(centerImage) {
+            @Override
+            protected void onResourceCleared(@Nullable Drawable placeholder) {
+
+            }
+
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                centerImage.setBackground(errorDrawable);
+            }
+
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                centerImage.setImageDrawable(resource);
+            }
+        };
 
                 api.checkInternet(() -> {
                     Call<ArrayList<Menues>> call = api.getMenues();
@@ -322,83 +353,103 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 double angleSize = 360 / size;
                                 for (int i = 0; i < size; i++) {
-                                    RelativeLayout relativeLayout = new RelativeLayout(MainActivity.this);
-                                    relativeLayout.setId(View.generateViewId());
-                                    params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                                    params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                                    if (i <= 7){
+                                        LinearLayout linearLayout = new LinearLayout(MainActivity.this);
+                                        linearLayout.setId(View.generateViewId());
+                                        linearLayout.setOrientation(LinearLayout.VERTICAL);
+                                        linearLayout.setGravity(Gravity.CENTER);
+                                        params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                                        params.addRule(RelativeLayout.CENTER_HORIZONTAL);
 
-                                    TextView iconHolder = new TextView(MainActivity.this);
-                                    iconHolder.setWidth((int) convertDpToPixel(70, MainActivity.this));
-                                    iconHolder.setId(View.generateViewId());
-                                    iconHolder.setHeight((int) convertDpToPixel(70, MainActivity.this));
+                                        TextView iconHolder = new TextView(MainActivity.this);
+                                        iconHolder.setWidth((int) convertDpToPixel(60, MainActivity.this));
+                                        iconHolder.setId(View.generateViewId());
+                                        iconHolder.setHeight((int) convertDpToPixel(60, MainActivity.this));
 
-                                    if (menues.get(i).getIcon().startsWith("e")) {
-                                        iconHolder.setPadding((int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), 0);
-                                        iconHolder.setTextSize(60);
-                                        ta = ResourcesCompat.getFont(MainActivity.this, R.font.bankicon);
-                                        iconHolder.setTypeface(ta);
-                                        if (!menues.get(i).getIcon().isEmpty()) {
-                                            String v = (menues.get(i).getIcon());
-                                            g = new String(Character.toChars(Integer.parseInt(
-                                                    v, 16)));
+                                        if (menues.get(i).getIcon().startsWith("e")) {
+                                            iconHolder.setPadding((int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), 0);
+                                            iconHolder.setTextSize(60);
+                                            ta = ResourcesCompat.getFont(MainActivity.this, R.font.bankicon);
+                                            iconHolder.setTypeface(ta);
+                                            if (!menues.get(i).getIcon().isEmpty()) {
+                                                String v = (menues.get(i).getIcon());
+                                                g = new String(Character.toChars(Integer.parseInt(
+                                                        v, 16)));
+                                            }
+                                        } else {
+                                            iconHolder.setPadding((int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(15, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), 0);
+                                            iconHolder.setTextSize(32);
+                                            ta = ResourcesCompat.getFont(MainActivity.this, R.font.fontawesome_webfont);
+                                            iconHolder.setTypeface(ta);
+                                            if (!menues.get(i).getIcon().isEmpty()) {
+                                                String v = (menues.get(i).getIcon());
+                                                g = new String(Character.toChars(Integer.parseInt(
+                                                        v, 16)));
+                                            }
+
                                         }
-                                    } else {
-                                        iconHolder.setPadding((int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), (int) convertDpToPixel(6, MainActivity.this), 0);
-                                        iconHolder.setTextSize(32);
-                                        ta = ResourcesCompat.getFont(MainActivity.this, R.font.fontawesome_webfont);
-                                        iconHolder.setTypeface(ta);
-                                        if (!menues.get(i).getIcon().isEmpty()) {
-                                            String v = (menues.get(i).getIcon());
-                                            g = new String(Character.toChars(Integer.parseInt(
-                                                    v, 16)));
+
+
+                                        iconHolder.setText(g);
+                                        iconHolder.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                                        iconHolder.setTextColor(Color.parseColor("#9E9E9E"));
+                                        iconHolder.setBackground(getDrawable(R.drawable.rounded_textview));
+                                        iconHolder.setElevation(convertDpToPixel(8,MainActivity.this));
+                                        iconHolder.setLayoutParams(params);
+                                        int finalI = i;
+                                        int finalI1 = i;
+                                        iconHolder.setOnClickListener(view -> {
+
+                                            if (menues.get(finalI).getUrl()!=null) {
+                                                String url1 =  menues.get(finalI).getUrl();
+                                                startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url1));
+                                            }
+                                            else {
+                                                int parent = menues.get(finalI1).getId();
+                                                startActivity(new Intent(MainActivity.this, CircleConstraintsActivity.class).putExtra("parentId", parent));
+                                            }
+                                        });
+                                        linearLayout.addView(iconHolder);
+
+                                        RelativeLayout.LayoutParams paramsForText = new RelativeLayout.LayoutParams(
+                                                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                                        paramsForText.addRule(RelativeLayout.BELOW, iconHolder.getId());
+
+
+
+                                        TextView iconText = new TextView(MainActivity.this);
+                                        iconText.setId(View.generateViewId());
+                                        iconText.setTextSize(18);
+                                        iconText.setTypeface(tf, Typeface.NORMAL);
+                                        iconText.setTextColor(getResources().getColor(android.R.color.white));
+                                        if (menues.get(i).getLabel().length() <= 10) {
+                                            iconText.setText(menues.get(i).getLabel());
+                                        } else {
+                                            String substring = menues.get(i).getLabel().substring(0, 6);
+                                            String text = substring + "...";
+                                            iconText.setText(text);
                                         }
+                                        iconText.setLayoutParams(paramsForText);
+                                        linearLayout.addView(iconText);
+                                        linearLayout.setLayoutParams(paramsForIconAndTextHolder);
+                                        constraintLayout.addView(linearLayout);
+
+
+                                        constraintSet.clone(constraintLayout);
+                                        constraintSet.connect(R.id.sun_image, ConstraintSet.BOTTOM, R.id.circle_view_holder, ConstraintSet.BOTTOM, (int)convertDpToPixel(20, MainActivity.this));
+                                        constraintSet.connect(R.id.sun_image, ConstraintSet.TOP, R.id.circle_view_holder, ConstraintSet.TOP, 0);
+                                        constraintSet.connect(R.id.sun_image, ConstraintSet.START, R.id.circle_view_holder, ConstraintSet.START, 0);
+                                        constraintSet.connect(R.id.sun_image, ConstraintSet.END, R.id.circle_view_holder, ConstraintSet.END, 0);
+                                        constraintSet.setVerticalBias(R.id.sun_image, 0.77f);
+                                        constraintSet.constrainCircle(linearLayout.getId(), R.id.sun_image, (int) convertDpToPixel(118, MainActivity.this), angle);
+                                        angle += angleSize;
+
+                                        constraintSet.applyTo(constraintLayout);
 
                                     }
-
-
-                                    iconHolder.setText(g);
-                                    iconHolder.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                                    iconHolder.setTextColor(getColor(R.color.colorAccent));
-                                    iconHolder.setBackground(getDrawable(R.drawable.rounded_textview));
-                                    iconHolder.setLayoutParams(params);
-                                    relativeLayout.addView(iconHolder);
-
-                                    RelativeLayout.LayoutParams paramsForText = new RelativeLayout.LayoutParams(
-                                            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                                    paramsForText.addRule(RelativeLayout.BELOW, iconHolder.getId());
-                                    paramsForText.addRule(RelativeLayout.CENTER_HORIZONTAL);
-
-                                    TextView iconText = new TextView(MainActivity.this);
-                                    iconText.setLayoutParams(paramsForText);
-                                    iconText.setId(View.generateViewId());
-                                    iconText.setTextSize(18);
-                                    iconText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                                    iconText.setTypeface(tf, Typeface.BOLD);
-                                    iconText.setTextColor(getColor(R.color.colorAccent));
-                                    if (menues.get(i).getLabel().length() <= 10) {
-                                        iconText.setText(menues.get(i).getLabel());
-                                    } else {
-                                        String substring = menues.get(i).getLabel().substring(0, 6);
-                                        String text = substring + "...";
-                                        iconText.setText(text);
-                                    }
-
-                                    relativeLayout.addView(iconText);
-                                    constraintLayout.addView(relativeLayout);
-
-
-                                    constraintSet.clone(constraintLayout);
-                                    constraintSet.connect(R.id.sun_image, ConstraintSet.BOTTOM, R.id.circle_view_holder, ConstraintSet.BOTTOM, 0);
-                                    constraintSet.connect(R.id.sun_image, ConstraintSet.TOP, R.id.circle_view_holder, ConstraintSet.TOP, 0);
-                                    constraintSet.connect(R.id.sun_image, ConstraintSet.START, R.id.circle_view_holder, ConstraintSet.START, 0);
-                                    constraintSet.connect(R.id.sun_image, ConstraintSet.END, R.id.circle_view_holder, ConstraintSet.END, 0);
-                                    constraintSet.setVerticalBias(R.id.sun_image, 0.77f);
-                                    constraintSet.constrainCircle(relativeLayout.getId(), R.id.sun_image, (int) convertDpToPixel(120, MainActivity.this), angle);
-                                    angle += angleSize;
-
-                                    constraintSet.applyTo(constraintLayout);
 
                                     menu = menues.get(i);
+
                                     if (menu.getSubmenu().size() > 0) {
                                         ExpandedMenuModel item1 = new ExpandedMenuModel();
                                         item1.setIconImgText(menu.getIcon());
@@ -429,11 +480,32 @@ public class MainActivity extends AppCompatActivity {
 
                                     }
                                 }
+                                ExpandedMenuModel myProfile = new ExpandedMenuModel();
+                                myProfile.setIconName("My Profile");
+                                listDataHeader.add(myProfile);
+                                listDataChild.put(listDataHeader.get(listDataHeader.size()-1), new ArrayList<>());
                                 GlideApp.with(MainActivity.this)
                                         .load(PreferencesManager.getUserBackground(MainActivity.this))
                                         .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
                                                 .override(Target.SIZE_ORIGINAL))
                                         .into(target);
+
+                                GlideApp.with(MainActivity.this)
+                                        .load(PreferencesManager.getUserPicture(MainActivity.this))
+                                        .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                                                .override(Target.SIZE_ORIGINAL))
+                                        .into(logo);
+                                GlideApp.with(MainActivity.this)
+                                        .load(PreferencesManager.getLogo(MainActivity.this))
+                                        .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                                                .override(Target.SIZE_ORIGINAL))
+                                        .into(navigationDrawerLogo);
+                                GlideApp.with(MainActivity.this)
+                                        .load(PreferencesManager.getLogo(MainActivity.this))
+                                        .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                                                .override(Target.SIZE_ORIGINAL))
+                                        .into(logoImg);
+
                                 mMenuAdapter = new ExpandableListAdapter(MainActivity.this, listDataHeader, listDataChild, expandableList);
                                 expandableList.setAdapter(mMenuAdapter);
                                 window = getWindow();

@@ -5,19 +5,20 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+    android:fitsSystemWindows="false"
     tools:openDrawer="start">
 
 
     <FrameLayout
         android:id="@+id/viewholder"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
 
         <include
             android:id="@+id/root"
-            layout="@layout/activity_orbits">
+            layout="@layout/activity_orbits"
+            >
 
         </include>
 
@@ -34,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:fitsSystemWindows="true"
+        android:fitsSystemWindows="false"
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer">
         <ExpandableListView

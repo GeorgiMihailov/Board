@@ -53,6 +53,8 @@ public class Main2Activity extends AppCompatActivity {
     int cardId;
     ConstraintLayout root;
 
+    ImageView logoImg;
+    ImageView navigationDrawerLogo;
 
     private LinearLayout circlesLayout;
     private LinearLayout.LayoutParams viewParams;
@@ -85,6 +87,8 @@ public class Main2Activity extends AppCompatActivity {
         navigationDraweAccentTitle.setBackgroundColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
         DrawerLayout mDrawerLayout = findViewById(R.id.drawer_layout);
         View view2 = findViewById(R.id.status_custom_view);
+        logoImg = findViewById(R.id.logo_img);
+        navigationDrawerLogo = view.findViewById(R.id.navigation_view_logo);
         ImageView menuBtn = view2.findViewById(R.id.menu_btn);
         ExpandableListView expandableList = findViewById(R.id.navigationmenu);
         expandableList.setGroupIndicator(null);
@@ -93,6 +97,8 @@ public class Main2Activity extends AppCompatActivity {
             android.widget.ExpandableListAdapter eListAdapter = expandableListView.getExpandableListAdapter();
             ExpandedMenuModel item = (ExpandedMenuModel) (eListAdapter.getChild(i, i1));
             String url = item.getUrl();
+            mDrawerLayout.closeDrawers();
+            finish();
             startActivity(new Intent(Main2Activity.this, SecondActivity.class).putExtra("url", url));
             return false;
         });
@@ -101,7 +107,14 @@ public class Main2Activity extends AppCompatActivity {
             ExpandedMenuModel item = (ExpandedMenuModel) eListAdapter.getGroup(i);
             if (eListAdapter.getChildrenCount(i) == 0){
                 String url = item.getUrl();
-                startActivity(new Intent(Main2Activity.this, SecondActivity.class).putExtra("url", url));
+                if(item.getUrl().isEmpty()){
+                    mDrawerLayout.closeDrawers();
+                    startActivity(new Intent(Main2Activity.this, MyActivity_activity.class));
+                }
+                else {
+                    finish();
+                    startActivity(new Intent(Main2Activity.this, SecondActivity.class).putExtra("url", url));
+                }
             }
 
 
@@ -209,6 +222,10 @@ public class Main2Activity extends AppCompatActivity {
                             }
 
                         }
+                        ExpandedMenuModel myProfile = new ExpandedMenuModel();
+                        myProfile.setIconName("My Profile");
+                        listDataHeader.add(myProfile);
+                        listDataChild.put(listDataHeader.get(listDataHeader.size()-1), new ArrayList<>());
                         mMenuAdapter = new ExpandableListAdapter(Main2Activity.this, listDataHeader, listDataChild, expandableList);
                         expandableList.setAdapter(mMenuAdapter);
                     }
@@ -251,6 +268,17 @@ public class Main2Activity extends AppCompatActivity {
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
                         .override(Target.SIZE_ORIGINAL))
                 .into(target);
+        GlideApp.with(Main2Activity.this)
+                .load(PreferencesManager.getLogo(Main2Activity.this))
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                        .override(Target.SIZE_ORIGINAL))
+                .into(navigationDrawerLogo);
+        GlideApp.with(Main2Activity.this)
+                .load(PreferencesManager.getLogo(Main2Activity.this))
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                        .override(Target.SIZE_ORIGINAL))
+                .into(logoImg);
+
 
 
         //VIEW FORMS
@@ -321,7 +349,7 @@ public class Main2Activity extends AppCompatActivity {
                             circlesLayout.addView(view);
                             if (i < statusNames.size() - 1) {
                                 View line = new View(Main2Activity.this);
-                                line.setBackgroundColor(getColor(R.color.colorAccent));
+                                line.setBackgroundColor(getResources().getColor(R.color.colorAccent));
                                 line.setLayoutParams(lineParams);
                                 circlesLayout.addView(line);
                             }
@@ -330,10 +358,10 @@ public class Main2Activity extends AppCompatActivity {
                             //TEXT VIEWS
                             TextView statusText = new TextView(Main2Activity.this);
                             statusText.setGravity(Gravity.START);
-                            statusText.setPadding((int) convertDpToPixel(30, Main2Activity.this), (int) convertDpToPixel(6, Main2Activity.this), 0, 0);
+                            statusText.setPadding((int) convertDpToPixel(30, Main2Activity.this), (int) convertDpToPixel(8, Main2Activity.this), 0, 0);
                             statusText.setText(statusNames.get(i));
-                            statusText.setTextSize(18);
-                            statusText.setTextColor(getColor(R.color.colorAccent));
+                            statusText.setTextSize(16);
+                            statusText.setTextColor(getResources().getColor(R.color.colorAccent));
                             statusText.setLayoutParams(textParams);
                             textLayout.addView(statusText);
 

@@ -5,7 +5,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+    android:fitsSystemWindows="false"
     tools:openDrawer="start">
 <RelativeLayout
     android:id="@+id/background_second_activity"
@@ -30,8 +30,7 @@
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_horizontal"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             tools:context=".SecondActivity">
 
@@ -82,7 +81,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:fitsSystemWindows="true"
+        android:fitsSystemWindows="false"
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer">
         <ExpandableListView

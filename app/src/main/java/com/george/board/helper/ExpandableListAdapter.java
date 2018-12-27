@@ -136,7 +136,10 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                 lblListHeader.setText(headerTitle.getIconName());
             }
 
-
+        }else
+        {
+            lblListHeader.setPadding((int) convertDpToPixel(30,convertView.getContext()), 0, 0, 0);
+            lblListHeader.setText(headerTitle.getIconName());
         }
 
 
