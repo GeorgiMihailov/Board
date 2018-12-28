@@ -57,6 +57,9 @@ public class RestApi {
     public Call<ResponseBody> UploadFile(String policy_number, String field_id, MultipartBody.Part file) {
         return request().uploadFile(policy_number, field_id, file);
     }
+    public Call<ConfigFormsList> getCardDetails (int companyId, int cardId){
+        return request().getCreditDetails(companyId,cardId);
+    }
     public Call<ResponseBody> sendForms(String userId,SendForm sendForm){
         return request().sendForms(userId,sendForm);
     }

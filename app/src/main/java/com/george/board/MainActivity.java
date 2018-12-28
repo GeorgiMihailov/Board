@@ -198,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
             ExpandedMenuModel item = (ExpandedMenuModel) (eListAdapter.getChild(i, i1));
             String url = item.getUrl();
             mDrawerLayout.closeDrawers();
-            startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url));
+            startActivity(new Intent(MainActivity.this, FormsActivity.class).putExtra("url", url));
             return false;
         });
         expandableList.setOnGroupClickListener((expandableListView, view12, i, l) -> {
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     mDrawerLayout.closeDrawers();
                     startActivity(new Intent(MainActivity.this, MyActivity_activity.class));
                 }
-               else startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url));
+               else startActivity(new Intent(MainActivity.this, FormsActivity.class).putExtra("url", url));
             }
 
 
@@ -402,7 +402,7 @@ public class MainActivity extends AppCompatActivity {
 
                                             if (menues.get(finalI).getUrl()!=null) {
                                                 String url1 =  menues.get(finalI).getUrl();
-                                                startActivity(new Intent(MainActivity.this, SecondActivity.class).putExtra("url", url1));
+                                                startActivity(new Intent(MainActivity.this, FormsActivity.class).putExtra("url", url1));
                                             }
                                             else {
                                                 int parent = menues.get(finalI1).getId();

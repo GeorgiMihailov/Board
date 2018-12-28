@@ -13,7 +13,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomViewTarget;
@@ -122,7 +121,7 @@ public class CircleConstraintsActivity extends AppCompatActivity implements MyRe
     public void onItemClick(View view, int position,Menues menue) {
 
         String url = menue.getUrl();
-        startActivity(new Intent(CircleConstraintsActivity.this, SecondActivity.class).putExtra("url", url));
+        startActivity(new Intent(CircleConstraintsActivity.this, FormsActivity.class).putExtra("url", url));
 
     }
 }

@@ -17,7 +17,7 @@
 
         <include
             android:id="@+id/root"
-            layout="@layout/activity_orbits"
+            layout="@layout/circle_menu_layout"
             >
 
         </include>

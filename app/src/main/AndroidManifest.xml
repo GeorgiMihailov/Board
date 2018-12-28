@@ -43,7 +43,7 @@
             <!-- </intent-filter> -->
         </activity>
         <activity
-            android:name=".SecondActivity"
+            android:name=".FormsActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustPan" />
         <activity
@@ -51,7 +51,7 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".Main2Activity"
+            android:name=".StatusActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".LoginActivity">

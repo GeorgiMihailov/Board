@@ -27,6 +27,9 @@ public interface ApiService {
     @GET("card/getcardfileds/{boardId}/{cardTypeId}")
     Call<ConfigFormsList> getFields(@Path("boardId") int boardId, @Path("cardTypeId") int cardTypeId);
 
+    @GET("card/getcard/{companyId}/{cardId}")
+    Call<ConfigFormsList>  getCreditDetails(@Path("companyId") int companyId, @Path("cardId") int cardId);
+
 //    @FormUrlEncoded
     @POST("card/createcard/{userId}")
         Call<ResponseBody>  sendForms(@Path("userId") String userId,@Body SendForm sendForm);

@@ -3,17 +3,13 @@ package com.george.board.helper;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 
-import com.george.board.Main2Activity;
+import com.george.board.StatusActivity;
 import com.george.board.R;
 import com.george.board.model.MyAccountActivityDetails;
 import com.thoughtbot.expandablerecyclerview.ExpandableRecyclerViewAdapter;
@@ -56,7 +52,7 @@ public class MyAccountAdapter extends ExpandableRecyclerViewAdapter<MyAccountAct
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), Main2Activity.class);
+                Intent intent = new Intent(v.getContext(), StatusActivity.class);
                 intent.putExtra("cardId", artist.get(flatPosition-1).getId());
                 v.getContext().startActivity(intent);
             }

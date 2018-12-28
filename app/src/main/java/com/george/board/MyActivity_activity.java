@@ -1,10 +1,12 @@
 package com.george.board;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -21,7 +23,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomViewTarget;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.george.board.api.RestApi;
 import com.george.board.appAuth.AuthStateManager;
 import com.george.board.appAuth.Configuration;
@@ -63,6 +67,7 @@ public class MyActivity_activity extends AppCompatActivity {
     private ExpandableListAdapter mMenuAdapter;
     private ImageView navigationDrawerLogo;
     private ImageView logoImg;
+    private ConstraintLayout holderLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +87,7 @@ public class MyActivity_activity extends AppCompatActivity {
         DrawerLayout mDrawerLayout = findViewById(R.id.drawer_layout);
         View view2 = findViewById(R.id.top_vire);
         ImageView menuBtn = view2.findViewById(R.id.menu_btn);
+        holderLayout = findViewById(R.id.first_layer_backgroud);
         ExpandableListView expandableList = findViewById(R.id.navigationmenu);
         expandableList.setGroupIndicator(null);
         String color = PreferencesManager.getPrimaryColor(this);
@@ -93,7 +99,7 @@ public class MyActivity_activity extends AppCompatActivity {
             String url = item.getUrl();
             mDrawerLayout.closeDrawers();
             finish();
-            startActivity(new Intent(MyActivity_activity.this, SecondActivity.class).putExtra("url", url));
+            startActivity(new Intent(MyActivity_activity.this, FormsActivity.class).putExtra("url", url));
             return false;
         });
         expandableList.setOnGroupClickListener((expandableListView, view12, i, l) -> {
@@ -106,7 +112,7 @@ public class MyActivity_activity extends AppCompatActivity {
                 }
                 else {
                     finish();
-                    startActivity(new Intent(MyActivity_activity.this, SecondActivity.class).putExtra("url", url));
+                    startActivity(new Intent(MyActivity_activity.this, FormsActivity.class).putExtra("url", url));
                 }
 
 
@@ -115,6 +121,28 @@ public class MyActivity_activity extends AppCompatActivity {
 
             return false;
         });
+
+        CustomViewTarget<ConstraintLayout, Drawable> target = new CustomViewTarget<ConstraintLayout, Drawable>(holderLayout) {
+            @Override
+            protected void onResourceCleared(@Nullable Drawable placeholder) {
+
+            }
+
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                holderLayout.setBackground(errorDrawable);
+            }
+
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                holderLayout.setBackground(resource);
+            }
+        };
+        GlideApp.with(MyActivity_activity.this)
+                .load(PreferencesManager.getUserBackground(MyActivity_activity.this))
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
+                        .override(Target.SIZE_ORIGINAL))
+                .into(target);
 
         GlideApp.with(MyActivity_activity.this)
                 .load(PreferencesManager.getLogo(MyActivity_activity.this))
@@ -281,36 +309,39 @@ public class MyActivity_activity extends AppCompatActivity {
         call.enqueue(new Callback<ArrayList<MyAccountActivity>>() {
             @Override
             public void onResponse(@NonNull Call<ArrayList<MyAccountActivity>> call, @NonNull Response<ArrayList<MyAccountActivity>> response) {
-                ArrayList<MyAccountActivity> accountActivity = response.body();
-                ArrayList<MyAccountActivity> main = new ArrayList<>();
-                if (accountActivity != null) {
-                    for (int i = 0; i < accountActivity.size();i++){
-                        ArrayList<MyAccountActivityDetails> detailsArrayList = new ArrayList<>();
+                if(response.isSuccessful()){
+                    ArrayList<MyAccountActivity> accountActivity = response.body();
+                    ArrayList<MyAccountActivity> main = new ArrayList<>();
+                    if (accountActivity != null) {
+                        for (int i = 0; i < accountActivity.size();i++){
+                            ArrayList<MyAccountActivityDetails> detailsArrayList = new ArrayList<>();
 
 
 
-                        for(int e =0; e < accountActivity.get(i).getCards().size();e++){
-                            MyAccountActivityDetails details = new MyAccountActivityDetails();
-                            details.setStatus(accountActivity.get(i).getCards().get(e).getStatus());
-                            details.setName(accountActivity.get(i).getCards().get(e).getName());
-                            details.setIcon(accountActivity.get(i).getCards().get(e).getIcon());
-                            details.setDate(accountActivity.get(i).getCards().get(e).getDate());
-                            details.setId(accountActivity.get(i).getCards().get(e).getId());
-                            detailsArrayList.add(details);
+                            for(int e =0; e < accountActivity.get(i).getCards().size();e++){
+                                MyAccountActivityDetails details = new MyAccountActivityDetails();
+                                details.setStatus(accountActivity.get(i).getCards().get(e).getStatus());
+                                details.setName(accountActivity.get(i).getCards().get(e).getName());
+                                details.setIcon(accountActivity.get(i).getCards().get(e).getIcon());
+                                details.setDate(accountActivity.get(i).getCards().get(e).getDate());
+                                details.setId(accountActivity.get(i).getCards().get(e).getId());
+                                detailsArrayList.add(details);
+                            }
+                            MyAccountActivity myAct = new MyAccountActivity(accountActivity.get(i).getName(), detailsArrayList);
+                            myAct.setIcon(accountActivity.get(i).getIcon());
+                            myAct.setCards(detailsArrayList);
+                            myAct.setSize(accountActivity.get(i).getSize());
+                            myAct.setName(accountActivity.get(i).getName());
+
+                            main.add(myAct);
+
                         }
-                        MyAccountActivity myAct = new MyAccountActivity(accountActivity.get(i).getName(), detailsArrayList);
-                        myAct.setIcon(accountActivity.get(i).getIcon());
-                        myAct.setCards(detailsArrayList);
-                        myAct.setSize(accountActivity.get(i).getSize());
-                        myAct.setName(accountActivity.get(i).getName());
-
-                        main.add(myAct);
-
                     }
+                    MyAccountAdapter adapter = new MyAccountAdapter(MyActivity_activity.this, main);
+                    recyclerView.setLayoutManager(layoutManager);
+                    recyclerView.setAdapter(adapter);
                 }
-                MyAccountAdapter adapter = new MyAccountAdapter(MyActivity_activity.this, main);
-                recyclerView.setLayoutManager(layoutManager);
-                recyclerView.setAdapter(adapter);
+
 
             }
 

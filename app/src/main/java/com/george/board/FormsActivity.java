@@ -17,7 +17,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.NavigationView;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
@@ -73,7 +72,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SecondActivity extends AppCompatActivity {
+public class FormsActivity extends AppCompatActivity {
     private LinearLayout constraintLayout;
     private RestApi api;
     private LinearLayout.LayoutParams p;
@@ -110,7 +109,7 @@ public class SecondActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_second);
+        setContentView(R.layout.forms_activity);
 
 
         Window window = getWindow();
@@ -148,7 +147,7 @@ public class SecondActivity extends AppCompatActivity {
             String url = item.getUrl();
             mDrawerLayout.closeDrawers();
             finish();
-            startActivity(new Intent(SecondActivity.this, SecondActivity.class).putExtra("url", url));
+            startActivity(new Intent(FormsActivity.this, FormsActivity.class).putExtra("url", url));
             return false;
         });
         expandableList.setOnGroupClickListener((expandableListView, view12, i, l) -> {
@@ -158,11 +157,11 @@ public class SecondActivity extends AppCompatActivity {
                 String url = item.getUrl();
                 if(item.getUrl().isEmpty()){
                     mDrawerLayout.closeDrawers();
-                    startActivity(new Intent(SecondActivity.this, MyActivity_activity.class));
+                    startActivity(new Intent(FormsActivity.this, MyActivity_activity.class));
                 }
                 else {
                     finish();
-                    startActivity(new Intent(SecondActivity.this, SecondActivity.class).putExtra("url", url));
+                    startActivity(new Intent(FormsActivity.this, FormsActivity.class).putExtra("url", url));
                 }
             }
 
@@ -276,7 +275,7 @@ public class SecondActivity extends AppCompatActivity {
                         myProfile.setIconName("My Profile");
                         listDataHeader.add(myProfile);
                         listDataChild.put(listDataHeader.get(listDataHeader.size()-1), new ArrayList<>());
-                        mMenuAdapter = new ExpandableListAdapter(SecondActivity.this, listDataHeader, listDataChild, expandableList);
+                        mMenuAdapter = new ExpandableListAdapter(FormsActivity.this, listDataHeader, listDataChild, expandableList);
                         expandableList.setAdapter(mMenuAdapter);
                     }
                 }
@@ -306,8 +305,8 @@ public class SecondActivity extends AppCompatActivity {
         };
 
 
-        GlideApp.with(SecondActivity.this)
-                .load(PreferencesManager.getUserBackground(SecondActivity.this))
+        GlideApp.with(FormsActivity.this)
+                .load(PreferencesManager.getUserBackground(FormsActivity.this))
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
                         .override(Target.SIZE_ORIGINAL))
                 .into(target);
@@ -319,13 +318,13 @@ public class SecondActivity extends AppCompatActivity {
         } else if (background instanceof ColorDrawable) {
             ((ColorDrawable) background).setColor(Color.parseColor(PreferencesManager.getPrimaryColor(this)));
         }
-        GlideApp.with(SecondActivity.this)
-                .load(PreferencesManager.getLogo(SecondActivity.this))
+        GlideApp.with(FormsActivity.this)
+                .load(PreferencesManager.getLogo(FormsActivity.this))
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
                         .override(Target.SIZE_ORIGINAL))
                 .into(navigationDrawerLogo);
-        GlideApp.with(SecondActivity.this)
-                .load(PreferencesManager.getLogo(SecondActivity.this))
+        GlideApp.with(FormsActivity.this)
+                .load(PreferencesManager.getLogo(FormsActivity.this))
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background)
                         .override(Target.SIZE_ORIGINAL))
                 .into(logoImg);
@@ -349,10 +348,10 @@ public class SecondActivity extends AppCompatActivity {
         constraintLayout = findViewById(R.id.layout);
         holder = findViewById(R.id.holder_toolbar);
         p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        p.setMargins((int) convertDpToPixel(6, SecondActivity.this),
-                (int) convertDpToPixel(6, SecondActivity.this),
-                (int) convertDpToPixel(6, SecondActivity.this),
-                (int) convertDpToPixel(6, SecondActivity.this));
+        p.setMargins((int) convertDpToPixel(6, FormsActivity.this),
+                (int) convertDpToPixel(6, FormsActivity.this),
+                (int) convertDpToPixel(6, FormsActivity.this),
+                (int) convertDpToPixel(6, FormsActivity.this));
 
         getForms(a, b);
 
@@ -474,7 +473,7 @@ public class SecondActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                     if (response.isSuccessful()){
-                        Toast.makeText(SecondActivity.this, "Успешна апликација.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(FormsActivity.this, "Успешна апликација.", Toast.LENGTH_LONG).show();
                         finish();
                     }
 
@@ -483,7 +482,7 @@ public class SecondActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                    Toast.makeText(SecondActivity.this, "Неуспешна апликација.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(FormsActivity.this, "Неуспешна апликација.", Toast.LENGTH_LONG).show();
                     finish();
                 }
             });
@@ -508,7 +507,7 @@ public class SecondActivity extends AppCompatActivity {
             case 1:
                 newForm = new ConfigForms();
 
-                EditText text = new EditText(SecondActivity.this);
+                EditText text = new EditText(FormsActivity.this);
                 text.setPadding(55, 20, 0, 0);
                 text.setHint(forms.getName());
                 text.setGravity(Gravity.START);
@@ -669,7 +668,7 @@ public class SecondActivity extends AppCompatActivity {
                 };  inputDate.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    new DatePickerDialog(SecondActivity.this, date, myCalendar
+                    new DatePickerDialog(FormsActivity.this, date, myCalendar
                             .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
                             myCalendar.get(Calendar.DAY_OF_MONTH)).show();
                 }
@@ -707,7 +706,7 @@ public class SecondActivity extends AppCompatActivity {
                     int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
                     int minute = mcurrentTime.get(Calendar.MINUTE);
                     TimePickerDialog mTimePicker;
-                    mTimePicker = new TimePickerDialog(SecondActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                    mTimePicker = new TimePickerDialog(FormsActivity.this, new TimePickerDialog.OnTimeSetListener() {
                         @Override
                         public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
                             inputTime.setText( selectedHour + ":" + selectedMinute);
