@@ -157,9 +157,15 @@ public class CreditDetailsFragment  extends Fragment {
                 spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setBackground(context.getDrawable(R.drawable.rec));
                 spinner.setAdapter(spinnerArrayAdapter);
-//                int selected = Integer.valueOf(forms.getDefaultValue());
-//                spinner.setSelection(forms.getListItem().get(selected-1).getId()-1);
-
+                if (forms.getDefaultValue() != null) {
+                    int selected = Integer.valueOf(forms.getDefaultValue());
+                    for (int selectedIndex = 0; selectedIndex < listItems.size(); selectedIndex++) {
+                        if (listItems.get(selectedIndex).getId() == selected) {
+                            spinner.setSelection(selectedIndex + 1);
+                        }
+                    }
+                }
+                spinner.setEnabled(false);
                 spinner.setTag("DROPDOWN");
                 holder.addView(spinner);
                 paramsForText.setMargins(0, 4, 0, 0);
@@ -169,38 +175,55 @@ public class CreditDetailsFragment  extends Fragment {
                 constraintLayout.addView(holder);
                 break;
 
-            // MULTISELECT
-//            case 5:
-//                newFormMulti = new ConfigForms();
-//                MultiSpinner multiSpinner = new MultiSpinner(context);
-//                multiSpinner.setBackground(context.getDrawable(R.drawable.rec));
-//                multiSpinner.setLayoutParams(p);
-//                multiSpinner.setTextColor(getResources().getColor(R.color.colorAccent));
-//                multiSpinner.setTextSize(18);
-//                multiSpinner.setPadding((int) convertDpToPixel(10, context),
-//                        (int) convertDpToPixel(4, context), 0, 0);
-//                arrayAdapter = new ArrayAdapter<>(context,
-//                        android.R.layout.simple_spinner_item);
-//                for (int j = 0; j < listItems.size(); j++) {
-//                    DropdownItem dropdownItem = new DropdownItem();
-//                    dropdownItem.setId(listItems.get(j).getId());
-//                    dropdownItem.setName(listItems.get(j).getName());
-//                    arrayAdapter.add(dropdownItem);
-//                }
-//
-//                multiSpinner.setAdapter(arrayAdapter, true, onSelectedListener);
-//                if (arrayAdapter.getCount() != 0) {
-//                    boolean[] selectedItems = new boolean[arrayAdapter.getCount()];
-//                    selectedItems[0] = true;
-//                    multiSpinner.setSelected(selectedItems);
-//                }
-//                multiSpinner.setDefaultText("CHOOSE WISELY");
-//                multiSpinner.setTag("MULTIDROPDOWN");
-//                editTexts.add(multiSpinner);
-//                newFormMulti.setType(forms.getType());
-//                newFormMulti.setId(forms.getId());
-//                constraintLayout.addView(multiSpinner);
-//                break;
+//             MULTISELECT
+            case 5:
+
+                MultiSpinner multiSpinner = new MultiSpinner(context);
+                multiSpinner.setBackground(context.getDrawable(R.drawable.rec));
+                multiSpinner.setLayoutParams(p);
+                multiSpinner.setTextColor(getResources().getColor(R.color.colorAccent));
+                multiSpinner.setTextSize(18);
+                multiSpinner.setPadding((int) convertDpToPixel(10, context),
+                        (int) convertDpToPixel(4, context), 0, 0);
+                arrayAdapter = new ArrayAdapter<>(context,
+                        android.R.layout.simple_spinner_item);
+                for (int j = 0; j < listItems.size(); j++) {
+                    DropdownItem dropdownItem = new DropdownItem();
+                    dropdownItem.setId(listItems.get(j).getId());
+                    dropdownItem.setName(listItems.get(j).getName());
+                    arrayAdapter.add(dropdownItem);
+                }
+
+
+                if (arrayAdapter.getCount() != 0) {
+                    boolean[] selectedItems = new boolean[arrayAdapter.getCount()];
+                    if (forms.getDefaultValue()!=null){
+                        String urls = forms.getDefaultValue();
+                        if (urls.contains(",")){
+                            String[] stringArrayList = urls.split(",");
+                            int le = stringArrayList.length;
+                            ArrayList<String> items = new ArrayList<>();
+                            for (int e =0;e<le;e++){
+                                String a = stringArrayList[e];
+                                items.add(a);
+                            }
+
+                            for (int a = 0; a < items.size();a++){
+                                if (String.valueOf(listItems.get(a).getId()).equals(stringArrayList[a])){
+                                    selectedItems[a]=true;
+                                }
+                                else selectedItems[a]=false;
+                            }
+
+                        }
+                        }
+                    multiSpinner.setAdapter(arrayAdapter, true, onSelectedListener);
+                    multiSpinner.setSelected(selectedItems);
+                }
+                multiSpinner.setEnabled(false);
+                multiSpinner.setTag("MULTIDROPDOWN");
+                constraintLayout.addView(multiSpinner);
+                break;
 
             //DATE
             case 6:
