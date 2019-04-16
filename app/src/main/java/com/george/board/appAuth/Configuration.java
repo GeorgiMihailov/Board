@@ -27,7 +27,7 @@ import okio.BufferedSource;
 import okio.Okio;
 
 /**
- * Reads and validates the demo app configuration from `res/raw/auth_config.json`. Configuration
+ * Reads and validates the demo app configuration from `res/raw/auth_config.json.json`. Configuration
  * changes are detected by comparing the hash of the last known configuration to the read
  * configuration. When a configuration change is detected, the app state is reset.
  */
